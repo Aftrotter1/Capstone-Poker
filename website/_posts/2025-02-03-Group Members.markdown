@@ -12,3 +12,5 @@ Spencer Wessel:
 - Major: Computer Science
 - Minors: Biology and Creative Media
 - Hobbies: Hiking, D&D, and excercise
+
+Cole Petit
