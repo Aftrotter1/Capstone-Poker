@@ -13,4 +13,8 @@ Spencer Wessel:
 - Minors: Biology and Creative Media
 - Hobbies: Hiking, D&D, and excercise
 
-Cole Petit
+Cole Petit:
+- Hometown: Geneva, IL
+- Majors: Computer Science, Chemical Engineering
+- Minors: Math
+- Hobbies: Board games, Music, Sports
