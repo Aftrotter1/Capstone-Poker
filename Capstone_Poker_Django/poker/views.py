@@ -6,6 +6,10 @@ def index(request):
     return render(request, 'index.html')
 
 def game(request):
-    output = poker.run_game()
+    context ={
+       'log': poker.run_game()
+
+    }
+    return render(request, 'log.html',context)
     # Wrap output in <pre> tags to maintain formatting.
-    return HttpResponse(f"<pre>{output}</pre>")
+    #return HttpResponse(f"<pre>{output}</pre>")
