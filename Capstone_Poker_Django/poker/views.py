@@ -1,14 +1,11 @@
 from django.shortcuts import render
-import os
-import subprocess
-# Create your views here.
 from django.http import HttpResponse
-from . import poker as poker
-def index(request):
- 
-   return render(request, 'index.html')
+from . import poker
 
+def index(request):
+    return render(request, 'index.html')
 
 def game(request):
-   poker.main()
-   return render(request,'index.html')
+    output = poker.run_game()
+    # Wrap output in <pre> tags to maintain formatting.
+    return HttpResponse(f"<pre>{output}</pre>")
