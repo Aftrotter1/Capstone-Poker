@@ -770,7 +770,7 @@ def run_game():
         player5 = Hand('Rob', table, 'SklanskySys2')
         player6 = Hand('Alex', table, 'SklanskySys2')
         player7 = Hand('Wynona', table, 'SklanskySys2')
-        player8 = Hand('Timur', table, 'SklanskySys2')
+        player8 = Hand('Timur', table, 'bot1')
         deck = Deck()
 
         while status == 'play':
