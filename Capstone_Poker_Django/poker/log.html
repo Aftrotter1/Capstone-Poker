@@ -26,6 +26,11 @@
   <body>
     <h1>Game Result Log</h1>
     <a href="/gamechoice/" class="button">Back to Game Choice</a>
+    <form action= "/logtext/"  method="post">
+      {% csrf_token %} 
+      <input type = "hidden" name =gamelog value="{{ log }}">
+      <button type="submit">Download Log</button>
+      </form>
     <pre>{{ log }}</pre>
   </body>
 </html>

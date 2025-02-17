@@ -9,6 +9,7 @@ urlpatterns = [
     path("game/", views.game, name="game"),
     path("gamechoice/", views.gamechoice, name="game"),
     path("download/", views.download, name="download"),
+    path("logtext/", views.logtext, name="logtext"),
     
 ]
 

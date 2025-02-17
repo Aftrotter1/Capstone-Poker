@@ -28,8 +28,9 @@ def logtest(request):
     return render(request,'index.html')
 def game(request):
     botnumber = request.POST.get('botnumber', '4')  # defaults to '4'
+    output= poker.run_game(botnumber)
     context = {
-       'log': poker.run_game(botnumber)
+       'log':output,
        
     }
     return render(request, 'log.html', context)
@@ -47,4 +48,10 @@ def download(request):
                                     content_type=mimetypes.guess_type(thefile)[0])
     response['Content-Length'] = os.path.getsize(thefile)
     response['Content-Disposition'] = "Attachment;filename=%s"% file_name
+    return response
+
+def logtext(request):
+    log = request.POST.get("gamelog")
+    response= HttpResponse(log,content_type='text/plain')
+    response['Content-Disposition'] = 'Attachment;filename="logoutput.txt"'
     return response
