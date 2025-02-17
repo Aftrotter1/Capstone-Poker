@@ -745,7 +745,7 @@ def showdown(pot):
         ######################
 
 #set up the game and players
-def run_game():
+def run_game(botnumber:int):
     """
     Runs the poker game simulation.
     Returns:
@@ -753,7 +753,7 @@ def run_game():
     """
     import io
     import sys
-
+    print(botnumber)
     buffer = io.StringIO()
     old_stdout = sys.stdout
     sys.stdout = buffer
