@@ -46,7 +46,7 @@ class Strategy():
 		
 		pass
 
-	def decide_play(self, player, pot):
+	def decide_play(self, player, pot, log):
 		
 		pass
 
@@ -54,7 +54,7 @@ class SklanskySys2(Strategy):
 
 	#sklansky all-in tournament strategy
 
-	def decide_play(self, player, pot):
+	def decide_play(self, player, pot, log):
 
 		total_blinds=(pot.blinds[0]+pot.blinds[1])
 		score=(player.stack/total_blinds)
@@ -75,8 +75,8 @@ class SklanskySys2(Strategy):
 
 		GAI=False
 
-		print ('score='+str(score))
-		print ('pot raised='+str(pot.raised))
+		log += 'score='+str(score)
+		log += 'pot raised='+str(pot.raised)
 		
 		if pot.raised:
 
@@ -140,11 +140,11 @@ class SklanskySys2(Strategy):
 
 		if GAI:
 			if player.stack<=player.to_play:
-				player.check_call(pot)
+				return player.check_call(pot, log)
 			else:
-				player.bet(pot, player.stack)
+				return player.bet(pot, player.stack, log)
 		else:
-			player.fold(pot)
+			return player.fold(pot, log)
 			
 			
 		
@@ -165,7 +165,7 @@ class SklanskySys2(Strategy):
 class Random(Strategy):
 
     
-	def decide_play(self, player, pot):
+	def decide_play(self, player, pot, log):
 
 		
 	     
@@ -173,18 +173,18 @@ class Random(Strategy):
 	       
 		
 		if choice==0:
-			player.fold(pot)
+			return player.fold(pot, log)
 		
 		elif choice==1:
 			if player.stack<=player.to_play:
-				player.check_call(pot)
+				return player.check_call(pot, log)
 			else:
-				player.bet(pot, calc_bet(player))
+				return player.bet(pot, calc_bet(player), log)
 		elif choice==2:
 			if player.stack<=player.to_play:
-				player.check_call(pot)
+				return player.check_call(pot, log)
 			else:
-				player.bet(pot, player.stack)
+				return player.bet(pot, player.stack, log)
 			
 		
 		
@@ -195,7 +195,7 @@ class Human(Strategy):
         options=[['x', 'f', 'b'], ['c', 'r', 'f'], ['c', 'f']]
         choices={0:'check, fold or bet', 1:'call, raise, fold', 2:'call all-in or fold'}
     
-        def decide_play(self, player, pot):
+        def decide_play(self, player, pot, log):
 	
                 player.get_value()
 	
@@ -222,11 +222,11 @@ class Human(Strategy):
 
         
                 if action=='x':
-                        player.check_call(pot)
+                        return player.check_call(pot, log)
                 elif action=='f':
-                        player.fold(pot)
+                        return player.fold(pot, log)
                 elif action=='c':
-                        player.check_call(pot)
+                        return player.check_call(pot, log)
                 elif action=='b' or action=='r':
                         stake=0
                         max_bet=player.stack
@@ -237,10 +237,10 @@ class Human(Strategy):
                                 except:
                                         print ('input a stake')
                         print ('stake '+str(stake))				
-                        player.bet(pot, stake)
+                        return player.bet(pot, stake, log)
 
 class Cole(Strategy):
-	def decide_play(self, player, pot):
+	def decide_play(self, player, pot, log):
 		wealth = player.stack/(pot.blinds[0] + pot.blinds[1])
 		score = 0
 		if len(player.total_cards) == 2:
@@ -265,21 +265,21 @@ class Cole(Strategy):
 		rand = random.random() - thresh
 		if rand > 0.15:
 			factor = int((rand-.15)/.05)
-			player.bet(pot, factor*player.to_play)
+			return player.bet(pot, factor*player.to_play, log)
 		elif rand > 0 or player.to_play == 0:
-			player.check_call(pot)
+			return player.check_call(pot, log)
 		else:
-			player.fold(pot)
+			return player.fold(pot, log)
 
 class AllCall(Strategy):
-	def decide_play(self, player, pot):
-		player.check_call(pot)
+	def decide_play(self, player, pot, log):
+		return player.check_call(pot, log)
 
 
 
 class StudentStrat(Strategy): ## want to be agressive early, play conservative near money line, check raise if we bet first with a good hand
     
-    def decide_play(self, player, pot):
+    def decide_play(self, player, pot, log):
                 total_blinds=(pot.blinds[0]+pot.blinds[1])
                 score=(player.stack/total_blinds)
                 score*=pot.yet_to_play
@@ -290,17 +290,17 @@ class StudentStrat(Strategy): ## want to be agressive early, play conservative n
                 raw_values, flush_score, straight, gappers=raw_data
                 raw_values.sort()
 
-                print ('score='+str(score))
+                log += 'score='+str(score)
 
                 RB=False ## RB stands for raise bet. I use raise bet rather than an all in tactic because all in scares players into folding.
 
                 if player.big_blind:
                         self.aggression = 1
-                        player.check_call(pot)
+                        return player.check_call(pot, log)
 
                 elif player.small_blind:
                         self.aggression = 1
-                        player.check_call(pot)
+                        return player.check_call(pot, log)
 
                         ## change to check call in instances where there isn't a possible flush, gapper, or straight, or pair/ triplet or full house
 
@@ -367,8 +367,8 @@ class StudentStrat(Strategy): ## want to be agressive early, play conservative n
 
                 if RB:
                         if player.stack<=player.to_play:
-                                player.check_call(pot)
+                                return player.check_call(pot, log)
                         else:
-                                player.bet(pot, calc_bet(player))
+                                return player.bet(pot, calc_bet(player), log)
                 else:
-                        player.fold(pot)
+                        return player.fold(pot, log)
