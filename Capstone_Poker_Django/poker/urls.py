@@ -8,6 +8,7 @@ urlpatterns = [
     path("logtest/", views.logtest, name="logtest"),
     path("game/", views.game, name="game"),
     path("gamechoice/", views.gamechoice, name="game"),
+    path("download/", views.download, name="download"),
     
 ]
 
