@@ -102,18 +102,38 @@
   <head>
     <link href='https://fonts.googleapis.com/css?family=Bevan' rel='stylesheet'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Log</title>
+    <title>Game Log</title>
     <meta charset="utf-8">
+    <style>
+      pre {
+        background-color: #f4f4f4;
+        border: 1px solid #ccc;
+        padding: 1em;
+        white-space: pre-wrap; /* Wrap long lines */
+        font-family: monospace;
+      }
+      .button {
+        display: inline-block;
+        padding: 0.5em 1em;
+        margin-bottom: 1em;
+        background-color: #007BFF;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+    </style>
   </head>
-  <body class = "border">
-    <h1 class = "neon-border">Poker Log</h1>
-    <form action="/">
-        <button id="run-button" class="button">Go Back to File Upload</button>
+  <body>
+    <h1>Game Result Log</h1>
+    <a href="/gamechoice/" class="button">Back to Game Choice</a>
+    <form action= "/logtext/"  method="post">
+      {% csrf_token %} 
+      <input type = "hidden" name =gamelog value="{{ log }}">
+      <button type="submit">Download Log</button>
       </form>
-
-      <form action="">
-        <button id="run-button" class="button">New Game</button>
-      </form>
-    <p>GAME RESULT:{{log}}</p>
+    <pre>{{ log }}</pre>
   </body>
 </html>
+
+

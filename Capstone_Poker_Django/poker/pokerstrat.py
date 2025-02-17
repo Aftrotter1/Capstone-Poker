@@ -2,6 +2,25 @@
 
 import random
 from . import pokerhands
+import importlib
+import inspect
+import os
+import pkgutil
+
+def discoverStrats(bot_package):
+    foundStrats = []
+    for _, module_name, is_pkg in pkgutil.iter_modules(bot_package.__path__):
+        if is_pkg:
+            continue
+        moduleName = f"{bot_package.__name__}.{module_name}"
+        module = importlib.import_module(moduleName)
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            # Ensure the class is a subclass of Strategy and not Strategy itself.
+            if issubclass(obj, Strategy) and obj is not Strategy:
+                foundStrats.append(obj)
+    return foundStrats
+
+
 def evaluate(player):
 	
 	value=player.get_value()
@@ -48,7 +67,7 @@ class Strategy():
         def decide_play(self, player, pot):
                 
                 pass
-
+'''
 class SklanskySys2(Strategy):
 
         #sklansky all-in tournament strategy
@@ -236,7 +255,7 @@ class Human(Strategy):
                                 print ('input a stake')
                 print ('stake '+str(stake))                                
                 player.bet(pot, stake)
-
+'''
         
                                 
 					

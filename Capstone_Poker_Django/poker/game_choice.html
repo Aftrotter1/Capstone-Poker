@@ -100,12 +100,35 @@
     <title>Test</title>
     <meta charset="utf-8">
   </head>
-  <body class = "border">
-    <h1 class = "neon-border">Choose Game Type</h1>
-      <button id="run-button" class="button">Custom</button>
-      <form action="/game/">
-        <button id="run-button" class="button">Random</button>
+  <body>
+    <h1>Choose Game Type</h1>
+    <p>Custom currently goes to random,but will be implemented for the final product</p>
+    <form action="/game/">
+      <button id="run-button" class="btn">Custom:</button>
+    </form>
+      <form action="/game/" method="post">
+        {% csrf_token %}  
+        <button id="run-button" class="btn">Random</button>
+        <div class="buttonBlock">
+      
+
+        <label for="botnumber">Choose the number of bots for the game:</label>
+
+        <select name="botnumber" id="botnumber">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected="selected">
+            4
+            </option>
+            
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+      </div>
       </form>
+
 
   </body>
 </html>
