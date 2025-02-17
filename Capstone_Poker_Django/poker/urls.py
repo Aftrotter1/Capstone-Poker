@@ -7,6 +7,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("logtest/", views.logtest, name="logtest"),
     path("game/", views.game, name="game"),
+    path("gamechoice/", views.gamechoice, name="game"),
     
 ]
 

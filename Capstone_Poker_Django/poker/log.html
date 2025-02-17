@@ -1,18 +1,33 @@
 <!doctype html>
 <html>
   <head>
-    <title>Log</title>
+    <title>Game Log</title>
     <meta charset="utf-8">
+    <style>
+      pre {
+        background-color: #f4f4f4;
+        border: 1px solid #ccc;
+        padding: 1em;
+        white-space: pre-wrap; /* Wrap long lines */
+        font-family: monospace;
+      }
+      .button {
+        display: inline-block;
+        padding: 0.5em 1em;
+        margin-bottom: 1em;
+        background-color: #007BFF;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Poker Log</h1>
-    <form action="/">
-        <button id="run-button" class="btn">Go Back to File Upload</button>
-      </form>
-
-      <form action="">
-        <button id="run-button" class="btn">New Game</button>
-      </form>
-    <p>GAME RESULT:{{log}}</p>
+    <h1>Game Result Log</h1>
+    <a href="/gamechoice/" class="button">Back to Game Choice</a>
+    <pre>{{ log }}</pre>
   </body>
 </html>
+
+

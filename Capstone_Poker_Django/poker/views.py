@@ -23,11 +23,11 @@ def gamechoice(request):
 def logtest(request):
     return render(request,'index.html')
 def game(request):
-    botnumber= request.POST.get('botnumber')
-    context ={
+    botnumber = request.POST.get('botnumber', '4')  # defaults to '4'
+    context = {
        'log': poker.run_game(botnumber)
-
     }
-    return render(request, 'log.html',context)
+    return render(request, 'log.html', context)
+
     # Wrap output in <pre> tags to maintain formatting.
     #return HttpResponse(f"<pre>{output}</pre>")

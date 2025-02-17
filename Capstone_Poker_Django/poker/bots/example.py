@@ -1,3 +1,5 @@
+from ..pokerstrat import Strategy, calc_bet
+
 class bot1(Strategy): ## want to be agressive early, play conservative near money line, check raise if we bet first with a good hand
     
     def decide_play(self, player, pot):

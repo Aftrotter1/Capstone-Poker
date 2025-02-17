@@ -52,13 +52,12 @@ class Hand:
 
     serial=0
 
-    def __init__(self, name, table, strategy='Random'):
+    def __init__(self, name, table, strategy_cls):
 
         
         self.strategy=[]
-        self.stratname=strategy
-        strategy_class=getattr(pokerstrat, strategy)
-        strat=strategy_class(self)
+        self.stratname = strategy_cls.__name__
+        strat = strategy_cls(self)
         self.strategy.append(strat)
                
         
@@ -160,24 +159,18 @@ class Hand:
         for card in self.cards: card.faceup=not card.faceup
 
     def fold(self, pot):
-
-        self.is_folded=True
-        self.in_pot=0
-        self.stake=0
-        self.raised=0
-        
-     
-        print (str(self.name)+' folds')
-
+        self.is_folded = True
+        self.in_pot = 0
+        self.stake = 0
+        self.raised = 0
+        print(str(self.name) + ' folds')
         pot.folded_players.append(self)
         if self in pot.active_players:
-        
             pot.active_players.remove(self)
-        
-                
         if pot.one_remaining:
-        	
-            pot.stage=5
+            pot.stage = 5
+        next_player(pot)
+
 
     def no_play(self, pot):
     	
@@ -564,8 +557,13 @@ def betting_round(pot, table):
     create_side_pot = False
     side_potters = []
     
+    iteration = 0
+    max_iterations = 100  # for debugging purposes, limit the iterations
+    
     # Process betting while there are still players to act.
-    while pot.no_raise < pot.table_size:
+    while pot.no_raise < pot.table_size and iteration < max_iterations:
+        iteration += 1
+        
         next_up = (int(pot.who_plays) + pot.turn) % pot.table_size
         player = pot.players[next_up]
         player.to_play = (pot.to_play - player.in_pot)
@@ -594,12 +592,11 @@ def betting_round(pot, table):
             player.all_in = True
             player.first_all_in = True
         
-        # (The loop should update pot.turn or similar here if needed,
-        # but we assume that such updates occur inside decide_play or next_player.)
+        # (next_player() should update pot.turn and pot.no_raise as needed)
     
-    if pot.one_remaining:
-        is_side_pot = False
-            
+    if iteration >= max_iterations:
+        print("Max iterations reached in betting_round, breaking out of loop.")
+    
     # Deal with refunds if a side pot is needed.
     if is_side_pot:
         for player in pot.players:
@@ -671,6 +668,7 @@ def betting_round(pot, table):
     pots[0].stage += 1
     pots[0].already_bet = False
     pots[0].limpers = 0
+
 
 def showdown(pot):
         
@@ -745,7 +743,7 @@ def showdown(pot):
         ######################
 
 #set up the game and players
-def run_game(botnumber:int):
+def run_game(botnumber: int):
     """
     Runs the poker game simulation.
     Returns:
@@ -753,77 +751,121 @@ def run_game(botnumber:int):
     """
     import io
     import sys
-    print(botnumber)
+    import random
+    from . import bots
+    from .pokerstrat import discoverStrats
+
+    # Discover *all* Strategy subclasses in the bots package.
+    bot_classes = discoverStrats(bots)
+
+    # Capture print output to return as a string
     buffer = io.StringIO()
     old_stdout = sys.stdout
     sys.stdout = buffer
-    BLINDS[0]= 10
-    BLINDS[1]= 20
+
+    # Set blinds to default
+    BLINDS[0] = 10
+    BLINDS[1] = 20
 
     try:
-        status = 'play'
+        # Create the table
         table = Table()
-        player1 = Hand('Philip', table, 'SklanskySys2')
-        player2 = Hand('Igor', table, 'SklanskySys2')
-        player3 = Hand('Carol', table, 'SklanskySys2')
-        player4 = Hand('Johnboy', table, 'SklanskySys2')
-        player5 = Hand('Rob', table, 'SklanskySys2')
-        player6 = Hand('Alex', table, 'SklanskySys2')
-        player7 = Hand('Wynona', table, 'SklanskySys2')
-        player8 = Hand('Timur', table, 'SklanskySys2')
-        deck = Deck()
 
-        while status == 'play':
+        # If no strategies are found, print error and exit
+        if not bot_classes:
+            print("No bot strategies found! Cannot proceed.")
+            return
+
+        # Create players based on `botnumber`, each with a random strategy
+        for i in range(int(botnumber)):
+            chosen_strategy_cls = random.choice(bot_classes)
+            # Create a name combining the strategy's class name and the bot number
+            player_name = f"{chosen_strategy_cls.__name__}{i+1}"
+            Hand(name=player_name, table=table, strategy_cls=chosen_strategy_cls)
+
+
+        # Ensure at least 2 players are present
+        if len(table.players) < 2:
+            print("Need at least 2 players to run a game.")
+            return
+
+        # Start game loop
+        status = 'play'
+        deck = Deck()
+        max_hands = 50  # Maximum number of hands to simulate
+
+        while status == 'play' and table.hands < max_hands:
+            print(f"--- Starting Hand {table.hands} ---")
+
             deck.populate()
             deck.shuffle()
             pots = []
+
+            # Create the main pot and add players
             pot = Pot(table, 'main')
             for player in table.players:
                 pot.players.append(player)
                 pot.active_players.append(player)
             pots.append(pot)
+
+            # Set blinds (dealer, small blind, big blind)
             pot.set_blinds()
 
-            print('Hand#' + str(table.hands))
-            print('Blinds: ' + str(BLINDS))
+            print('Hand#', table.hands)
+            print('Blinds:', BLINDS)
 
-            print('Blinds: ' + str(BLINDS))
+            # Ante up and deal hole cards
             ante_up(pot, deck)
 
-
+            # Go through all betting stages: pre-flop, flop, turn, river
             while pot.stage < 4:
                 deck.deal_to(table, Pot.deal_sequence[pot.stage], True)
                 print(str(Pot.stage_dict[pot.stage]))
                 table.print_cards()
                 betting_round(pots[-1], table)
 
+            # If more than one player remains, run the showdown
             if len(table.players) > 1:
-                for pot in pots:
-                    showdown(pot)
+                for p in pots:
+                    showdown(p)
 
+            # Increment hand count and update blinds every 6 hands
             table.hands += 1
             table.blinds_timer = table.hands % 6
             if table.blinds_timer == 5:
                 BLINDS[:] = [x * 2 for x in BLINDS]
+
+            # Remove players with insufficient chips
             for player in table.players[:]:
                 print(player.name, player.stack, BLINDS[1])
                 if player.stack <= BLINDS[1]:
                     player.bust()
+
+            # End game if only one player remains
             if len(table.players) == 1:
                 status = 'winner'
 
             print('\n\n\n')
             next_hand(table, deck)
+            print(f"--- Finished Hand {table.hands} ---\n")
 
+        if table.hands >= max_hands:
+            print("Maximum hand limit reached, ending simulation.")
+
+        # Announce the winner(s)
         for player in table.players:
-            print(str(player.name) + ' wins the game')
-    finally:
-        sys.stdout = old_stdout  # Restore stdout
+            print(str(player.name), 'wins the game!')
 
+    finally:
+        # Restore standard output
+        sys.stdout = old_stdout
+
+    # Return the captured output
     return buffer.getvalue()
 
+
 if __name__ == '__main__':
-    print(run_game())
+    print(run_game(4))
 
 """
 status='setup'
