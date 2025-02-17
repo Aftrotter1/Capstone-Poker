@@ -112,7 +112,7 @@
       <button id="run-button" class="button">Custom:</button>
     </form>
       <form action="/game/" method="post">
-        {% csrf_token %}  
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button id="run-button" class="button">Random</button>
         <div class="buttonBlock">
       
