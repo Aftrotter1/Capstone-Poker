@@ -128,7 +128,7 @@
     <h1 class = "neon-border">Game Result Log</h1>
     <a href="/gamechoice/" class="button">Back to Game Choice</a>
     <form action= "/logtext/"  method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% csrf_token %} 
       <input type = "hidden" name =gamelog value="{{ log }}">
       <button type="submit" class = "button">Download Log</button>
       </form>

@@ -52,7 +52,7 @@ class Hand:
 
     serial=0
 
-    def __init__(self, name, table, strategy_cls):
+    def __init__(self, name, table, strategy_cls,stack):
 
         
         self.strategy=[]
@@ -77,7 +77,7 @@ class Hand:
         self.tie_break=0
         self.raw_data=0
         self.is_folded=False
-        self.stack=1000
+        self.stack=stack
         
         self.stake=0
         self.in_pot=0
@@ -743,7 +743,7 @@ def showdown(pot):
         ######################
 
 #set up the game and players
-def run_game(botnumber: int):
+def run_game(botnumber: int, smallblind: int, stack: int):
     """
     Runs the poker game simulation.
     Returns:
@@ -762,10 +762,10 @@ def run_game(botnumber: int):
     buffer = io.StringIO()
     old_stdout = sys.stdout
     sys.stdout = buffer
-
+    print(smallblind)
     # Set blinds to default
-    BLINDS[0] = 10
-    BLINDS[1] = 20
+    BLINDS[0] = int(smallblind)
+    BLINDS[1] = int(smallblind)*2
 
     try:
         # Create the table
@@ -781,7 +781,7 @@ def run_game(botnumber: int):
             chosen_strategy_cls = random.choice(bot_classes)
             # Create a name combining the strategy's class name and the bot number
             player_name = f"{chosen_strategy_cls.__name__}{i+1}"
-            Hand(name=player_name, table=table, strategy_cls=chosen_strategy_cls)
+            Hand(name=player_name, table=table, strategy_cls=chosen_strategy_cls,stack=int(stack))
 
 
         # Ensure at least 2 players are present

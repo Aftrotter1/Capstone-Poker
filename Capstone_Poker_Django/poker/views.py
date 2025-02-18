@@ -28,7 +28,22 @@ def logtest(request):
     return render(request,'index.html')
 def game(request):
     botnumber = request.POST.get('botnumber', '4')  # defaults to '4'
-    output= poker.run_game(botnumber)
+    output= poker.run_game(botnumber,10,1000)
+    context = {
+       'log':output,
+       
+    }
+    return render(request, 'log.html', context)
+
+
+def custom(request):
+    return render(request, 'custom.html')
+
+def customgame(request):
+    botnumber = request.POST.get('botnumber', '4')  # defaults to '4'
+    smallblind = request.POST.get('smallBlind', '10')  # defaults to '4'
+    stacknumber = request.POST.get('stacknumber', '1000')  # defaults to '4'
+    output= poker.run_game(botnumber,smallblind,stacknumber)
     context = {
        'log':output,
        
