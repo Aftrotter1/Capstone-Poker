@@ -57,14 +57,14 @@ select>option {
 
 label {
   display: block;
-  width: 515px;
+  width: 625px;
   font-family: 'Interstate',sans-serif;
   font-size: 16px;
   font-weight: bold;
   -webkit-border-radius:5px;
   -moz-border-radius:5px;
   border-radius:5px;
-  border:1px solid #b2eeac;
+  border:1px solid #000000;
   overflow:hidden;
   background: #b8e1ba;
   position:relative;
@@ -131,22 +131,22 @@ label {
   </head>
   <body>
     <h1 class = "neon-border">Choose Game Type</h1>
-    <form action="/custom/">
+    <form style = "padding-bottom: 5px" action="/custom/">
       {% csrf_token %}
-      <button id="run-button" class="button">Custom:</button>
+      <button id="run-button" class="button">Custom</button></form>
     </form>
       <form action="/game/" method="post">
         {% csrf_token %}
         <button id="run-button" class="button">Random</button>
-          <div> <a href="/" class="button">Back to File Upload</a></div>
+          <a href="/" class="button">Back to File Upload</a>
           <p></p>
           <p></p>
         <div class="buttonBlock">
       
 
-        <label for="botnumber">Choose the Number of Bots for a Random Game:</label>
+        <label style = "font-size: 26px" for="botnumber">Choose the Number of Bots for a Random Game:</label>
 
-        <select name="botnumber" id="botnumber">
+        <select style = "font-size: 26px" name="botnumber" id="botnumber">
           <option value="2">2</option>
           <option value="3">3</option>
           <option value="4" selected="selected">
