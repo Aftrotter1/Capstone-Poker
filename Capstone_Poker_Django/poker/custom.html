@@ -13,6 +13,30 @@
       border-radius: 10px;
       font-size: 24px;
     }
+    select {
+    width: 10rem;
+    background-color: #c3f0c6;
+    border: #b2eeac 2px solid;
+}
+
+select>option {
+    background-color: #b8e1ba;
+}
+
+label {
+  display: block;
+  width: 515px;
+  font-family: 'Interstate',sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  -webkit-border-radius:5px;
+  -moz-border-radius:5px;
+  border-radius:5px;
+  border:1px solid #b2eeac;
+  overflow:hidden;
+  background: #b8e1ba;
+  position:relative;
+}
     .button {
     padding: 15px 25px;
     font-size: 24px;
@@ -102,7 +126,7 @@
   <head>
     <link href='https://fonts.googleapis.com/css?family=Bevan' rel='stylesheet'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test</title>
+    <title>Custom Game</title>
     <meta charset="utf-8">
   </head>
   <body>
@@ -110,6 +134,7 @@
       <form action="/customgame/" method="post">
         {% csrf_token %}
         <button id="run-button" class="button">Start Custom</button>
+        <a href="/gamechoice/" class="button">Back to Game Choice</a>
         <p></p>
         <p></p>
         <div class="stackBlock">

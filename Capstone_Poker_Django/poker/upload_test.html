@@ -12,10 +12,34 @@
       text-shadow: 2px 2px 5px black;
     }
     p {
-      background-color: green;
+      background-color: #b8e1ba;
       border-radius: 10px;
       font-size: 24px;
     }
+    select {
+    width: 10rem;
+    background-color: #c3f0c6;
+    border: #b2eeac 2px solid;
+}
+
+select>option {
+    background-color: #b8e1ba;
+}
+
+label {
+  display: block;
+  width: 515px;
+  font-family: 'Interstate',sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  -webkit-border-radius:5px;
+  -moz-border-radius:5px;
+  border-radius:5px;
+  border:1px solid #b2eeac;
+  overflow:hidden;
+  background: #b8e1ba;
+  position:relative;
+}
     .button {
     padding: 15px 25px;
     font-size: 24px;
@@ -101,14 +125,24 @@
   .neon-border {
       text-shadow: 0 0 5px #fff, 0 0 10 px #fff, 0 0 20px #ff00ff, 0 0 30px #ff00ff, 0 0 40px #ff00ff;
   }
+ 
+.custom-file-upload {
+    border: 1px solid #b8e1ba;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
   </style>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <label class = "custom-file-upload" >
     <input type="file" accept=".py" name="bot1">
     <button type="submit">Upload</button>
+  </label>
   <p>Example Poker Bot Template:</p>
   <a href="/download/">
       <button class = "button" type ="button">Download Template </button>
   </a>
+  <div> <a href="/gamechoice/" class="button">Go to Game Choice</a></div>
 </html>
 {% endblock %}
