@@ -812,111 +812,255 @@ def showdown(pot, out_string):
         ######################
 
 #set up the game and players
-if __name__ == "__main__":
+def run_game(
+    botnumber: int = None,
+    smallblind: int = 10,
+    stack: int = 1000,
+    custom_config: dict = None
+):
+    """
+    Runs the poker game simulation.
 
-    status='setup'
-    log = ''
+    If custom_config is provided and not empty, we create players based on
+    the {StrategyName: count} dictionary.
+    Otherwise, if botnumber is provided, we create that many random players.
 
-    BLINDS=[100, 200]
+    :param botnumber: (int) number of random bots if no custom_config is given
+    :param custom_config: (dict) e.g. {"SklanskySys2": 2, "Random": 3}
+    :param smallblind: (int) small blind
+    :param stack: (int) starting stack
+    :return: A string containing the output of the game.
+    """
+    import io
+    import sys
+    import random
+    from . import bots
+    from .pokerstrat import discoverStrats
 
-    table=Table(BLINDS)
+    # Discover all Strategy subclasses in the bots package.
+    bot_classes = discoverStrats(bots)
 
-    player1=Hand('p1', table, 'AllCall')
-    player2=Hand('p2', table, 'AllCall')
-    player3=Hand('p3', table, 'AllCall')
-    player4=Hand('p4', table, 'AllCall')
+    strategy_dict = {cls.__name__: cls for cls in bot_classes}
+    # Capture print output to return as a string
+    buffer = io.StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = buffer
 
-    deck=Deck()
+    # Set blinds to default
 
-    status='play'
+    try:
+        table = Table()
+        table.blinds[0] = int(smallblind)
+        table.blinds[1] = int(smallblind) * 2
+        # If no strategies are found, print error and exit
+        if not bot_classes:
+            print("No bot strategies found! Cannot proceed.")
+            return
 
-    #for i in range (0,2):
+        # Decide how to create players:
+        if custom_config:
+            # Use custom_config dictionary
+            for strat_name, count in custom_config.items():
+                if strat_name not in strategy_dict:
+                    print(f"Warning: Strategy '{strat_name}' not found.")
+                    continue
+                chosen_cls = strategy_dict[strat_name]
+                for i in range(count):
+                    player_name = f"{strat_name}_{i+1}"
+                    Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
 
-    while status=='play':
+        else:
+            # Fall back to random if custom_config is None or empty
+            # If botnumber is None, default to 4
+            if not botnumber:
+                botnumber = 4
+            print(f"Creating {botnumber} random bots.")
+            strategy_counts = {}
+            for i in range(int(botnumber)):
+                chosen_cls = random.choice(bot_classes)
+                cls_name = chosen_cls.__name__
+                strategy_counts[cls_name] = strategy_counts.get(cls_name, 0) + 1
+                player_name = f"{cls_name}{strategy_counts[cls_name]}"
+                Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
 
-        #increment the table hand#
+        # Ensure at least 2 players
+        if len(table.players) < 2:
+            print("Need at least 2 players to run a game.")
+            return
 
-        
-            
-        
+        status = 'play'
+        deck = Deck()
+        max_hands = 50
 
-        #shuffle the deck
-        
-        deck.populate()
-        deck.shuffle()
+        while status == 'play' and table.hands < max_hands:
+            print(f"--- Starting Hand {table.hands} ---")
+            deck.populate()
+            deck.shuffle()
+            pots = []
 
-        #create pot for this hand
-        pots=[]
-        pot=Pot(table, 'main')
-        
-        
-        
+            pot = Pot(table, 'main')
+            for player in table.players:
+                pot.players.append(player)
+                pot.active_players.append(player)
+            pots.append(pot)
+
+            pot.set_blinds()
+
+            print('Hand#', table.hands)
+            print('Blinds:', table.blinds)
+
+            ante_up(pot, deck)
+
+            while pot.stage < 4:
+                deck.deal_to(table, Pot.deal_sequence[pot.stage], True)
+                print(str(Pot.stage_dict[pot.stage]))
+                table.print_cards()
+                betting_round(pots[-1], table)
+
+            if len(table.players) > 1:
+                for p in pots:
+                    showdown(p)
+            # Increment hand count and update blinds every 6 hands
+            table.hands += 1
+            table.blinds_timer = table.hands % 6
+            if table.blinds_timer == 5:
+                table.blinds[:] = [x * 2 for x in table.blinds]
+
+            # Remove busted
+            for player in table.players[:]:
+                print(player.name, player.stack, table.blinds[1])
+                if player.stack <= table.blinds[1]:
+                    player.bust()
+            # End game if only one player remains
+            if len(table.players) == 1:
+                status = 'winner'
+
+            print('\n\n\n')
+            next_hand(table, deck)
+            print(f"--- Finished Hand {table.hands} ---\n")
+
+        if table.hands >= max_hands:
+            print("Maximum hand limit reached, ending simulation.")
+
         for player in table.players:
+            print(str(player.name), 'wins the game!')
+
+    finally:
+        sys.stdout = old_stdout
+
+    return buffer.getvalue()
+
+
+if __name__ == '__main__':
+    print(run_game(4, 10, 1000))
+
+
+
+
+
+"""
+status='setup'
+
+BLINDS=[10,20]
+
+table=Table()
+
+player1=Hand('Philip', table, 'SklanskySys2')
+player2=Hand('Igor', table, 'SklanskySys2')
+player3=Hand('Carol', table, 'SklanskySys2')
+player4=Hand('Johnboy', table, 'SklanskySys2')
+player5=Hand('Rob', table, 'SklanskySys2')
+player6=Hand('Alex', table, 'SklanskySys2')
+player7=Hand('Wynona', table, 'SklanskySys2')
+player8=Hand('Timur', table, 'SklanskySys2')
+
+deck=Deck()
+
+status='play'
+
+#for i in range (0,2):
+
+while status=='play':
+
+    #increment the table hand#
+
+     
+        
+    
+
+    #shuffle the deck
+    
+    deck.populate()
+    deck.shuffle()
+
+    #create pot for this hand
+    pots=[]
+    pot=Pot(table, 'main')
+    
+    
+    
+    for player in table.players:
             pot.players.append(player)
             pot.active_players.append(player)
-                
-        pots.append(pot)
-        
-        #allocate blinds and ante up
-
-        pot.set_blinds()
-
-        log += 'Hand '+str(table.hands) + '\n'
-        log += 'Blinds: '+str(BLINDS) + '\n'
-        
-        log = ante_up(pot, log)
-
-        #debug(pot)
-        #log = table.print_players(log)
-
-        while pot.stage<4:
-                
-            log = deck.deal_to(table, log, Pot.deal_sequence[pot.stage], True)
-
-            log += str(Pot.stage_dict[pot.stage]) + '\n'
             
-            log = table.print_cards(log)        	
-                
-            log = betting_round(pots[-1], table, log)
-            
-            #log = table.print_players(log)
-        
+    pots.append(pot)
+    
+    #allocate blinds and ante up
 
-        
-        if len(table.players)>1:
+    pot.set_blinds()
 
-            for pot in pots:
-            
-                log = showdown(pot, log)
-                
-            
-        
-        table.hands+=1
-        table.blinds_timer=table.hands%6
-        if table.blinds_timer==5:
-            BLINDS[:] = [x*2 for x in BLINDS]
-            
-        for player in table.players[:]:
-            log += "{} {} {}\n".format(player.name, player.stack, BLINDS[1])
-            if player.stack<=BLINDS[1]:
-                log = player.bust(log)
-                    
-        if len(table.players)==1:
-            status='winner'
-        
-            
-        log += '\n\n\n'
-        
-        next_hand(table, deck)
+    print ('Hand#'+str(table.hands))
+    print ('Blinds: '+str(BLINDS))
+    
+    ante_up(pot)
 
-    for player in table.players:
+    #debug(pot)
+    #table.print_players()
+
+    while pot.stage<4:
+            
+        deck.deal_to(table, Pot.deal_sequence[pot.stage], True)
+
+        print (str(Pot.stage_dict[pot.stage]))
         
-        log += str(player.name)+' wins the game\n'
-        table.winner = str(player.name)
+        table.print_cards()        	
+             
+        betting_round(pots[-1], table)
+        
+        #table.print_players()
+       
 
-    print("Game Summary:\n\n" + table.winner + " wins after " + str(table.hands) + " hands\n")
-    for (player, hands) in table.busted:
-        print(player + " busted on round " + str(hands))
+    
+    if len(table.players)>1:
 
-    print("\n==========================================================================================================\n\n")
-    print("Full game log:\n\n" + log)
+        for pot in pots:
+        
+            showdown(pot)
+            
+         
+    
+    table.hands+=1
+    table.blinds_timer=table.hands%6
+    if table.blinds_timer==5:
+        BLINDS[:] = [x*2 for x in BLINDS]
+        
+    for player in table.players[:]:
+        	print (player.name, player.stack, BLINDS[1])
+        	if player.stack<=BLINDS[1]:
+        		
+        		player.bust()
+        		
+    if len(table.players)==1:
+    	status='winner'
+    
+          
+    print ('\n\n\n')
+    
+    next_hand(table, deck)
+    
+for player in table.players:
+	
+	print (str(player.name)+' wins the game')
+"""
+
+
