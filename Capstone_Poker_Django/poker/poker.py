@@ -743,11 +743,24 @@ def showdown(pot):
         ######################
 
 #set up the game and players
-def run_game(botnumber: int, smallblind: int, stack: int):
+def run_game(
+    botnumber: int = None,
+    smallblind: int = 10,
+    stack: int = 1000,
+    custom_config: dict = None
+):
     """
     Runs the poker game simulation.
-    Returns:
-        A string containing the output of the game.
+
+    If custom_config is provided and not empty, we create players based on
+    the {StrategyName: count} dictionary.
+    Otherwise, if botnumber is provided, we create that many random players.
+
+    :param botnumber: (int) number of random bots if no custom_config is given
+    :param custom_config: (dict) e.g. {"SklanskySys2": 2, "Random": 3}
+    :param smallblind: (int) small blind
+    :param stack: (int) starting stack
+    :return: A string containing the output of the game.
     """
     import io
     import sys
@@ -755,92 +768,100 @@ def run_game(botnumber: int, smallblind: int, stack: int):
     from . import bots
     from .pokerstrat import discoverStrats
 
-    # Discover *all* Strategy subclasses in the bots package.
+    # Discover all Strategy subclasses in the bots package.
     bot_classes = discoverStrats(bots)
 
+    strategy_dict = {cls.__name__: cls for cls in bot_classes}
     # Capture print output to return as a string
     buffer = io.StringIO()
     old_stdout = sys.stdout
     sys.stdout = buffer
-    print(smallblind)
+
     # Set blinds to default
     BLINDS[0] = int(smallblind)
-    BLINDS[1] = int(smallblind)*2
+    BLINDS[1] = int(smallblind) * 2
 
     try:
-        # Create the table
         table = Table()
-
         # If no strategies are found, print error and exit
         if not bot_classes:
             print("No bot strategies found! Cannot proceed.")
             return
 
-        # Create players based on `botnumber`, each with a random strategy
-        for i in range(int(botnumber)):
-            chosen_strategy_cls = random.choice(bot_classes)
-            # Create a name combining the strategy's class name and the bot number
-            player_name = f"{chosen_strategy_cls.__name__}{i+1}"
-            Hand(name=player_name, table=table, strategy_cls=chosen_strategy_cls,stack=int(stack))
+        # Decide how to create players:
+        if custom_config:
+            # Use custom_config dictionary
+            for strat_name, count in custom_config.items():
+                if strat_name not in strategy_dict:
+                    print(f"Warning: Strategy '{strat_name}' not found.")
+                    continue
+                chosen_cls = strategy_dict[strat_name]
+                for i in range(count):
+                    player_name = f"{strat_name}{i+1}"
+                    Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
 
+        else:
+            # Fall back to random if custom_config is None or empty
+            # If botnumber is None, default to 4
+            if not botnumber:
+                botnumber = 4
+            print(f"Creating {botnumber} random bots.")
+            strategy_counts = {}
+            for i in range(int(botnumber)):
+                chosen_cls = random.choice(bot_classes)
+                cls_name = chosen_cls.__name__
+                strategy_counts[cls_name] = strategy_counts.get(cls_name, 0) + 1
+                player_name = f"{cls_name}{strategy_counts[cls_name]}"
+                Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
 
-        # Ensure at least 2 players are present
+        # Ensure at least 2 players
         if len(table.players) < 2:
             print("Need at least 2 players to run a game.")
             return
 
-        # Start game loop
         status = 'play'
         deck = Deck()
-        max_hands = 50  # Maximum number of hands to simulate
+        max_hands = 50
 
         while status == 'play' and table.hands < max_hands:
             print(f"--- Starting Hand {table.hands} ---")
-
             deck.populate()
             deck.shuffle()
             pots = []
 
-            # Create the main pot and add players
             pot = Pot(table, 'main')
             for player in table.players:
                 pot.players.append(player)
                 pot.active_players.append(player)
             pots.append(pot)
 
-            # Set blinds (dealer, small blind, big blind)
             pot.set_blinds()
 
             print('Hand#', table.hands)
             print('Blinds:', BLINDS)
 
-            # Ante up and deal hole cards
             ante_up(pot, deck)
 
-            # Go through all betting stages: pre-flop, flop, turn, river
             while pot.stage < 4:
                 deck.deal_to(table, Pot.deal_sequence[pot.stage], True)
                 print(str(Pot.stage_dict[pot.stage]))
                 table.print_cards()
                 betting_round(pots[-1], table)
 
-            # If more than one player remains, run the showdown
             if len(table.players) > 1:
                 for p in pots:
                     showdown(p)
-
             # Increment hand count and update blinds every 6 hands
             table.hands += 1
             table.blinds_timer = table.hands % 6
             if table.blinds_timer == 5:
                 BLINDS[:] = [x * 2 for x in BLINDS]
 
-            # Remove players with insufficient chips
+            # Remove busted
             for player in table.players[:]:
                 print(player.name, player.stack, BLINDS[1])
                 if player.stack <= BLINDS[1]:
                     player.bust()
-
             # End game if only one player remains
             if len(table.players) == 1:
                 status = 'winner'
@@ -852,20 +873,21 @@ def run_game(botnumber: int, smallblind: int, stack: int):
         if table.hands >= max_hands:
             print("Maximum hand limit reached, ending simulation.")
 
-        # Announce the winner(s)
         for player in table.players:
             print(str(player.name), 'wins the game!')
 
     finally:
-        # Restore standard output
         sys.stdout = old_stdout
 
-    # Return the captured output
     return buffer.getvalue()
 
 
 if __name__ == '__main__':
-    print(run_game(4))
+    print(run_game(4, 10, 1000))
+
+
+
+
 
 """
 status='setup'
