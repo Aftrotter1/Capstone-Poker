@@ -31,7 +31,7 @@ def calc_bet(player, log):
     min_bet=player.to_play
     if max_bet<min_bet:
         min_bet=max_bet
-    log += 'calc_bet -- max bet '+str(max_bet) + ', ' + 'min bet '+str(min_bet)
+    #log += 'calc_bet -- max bet '+str(max_bet) + ', ' + 'min bet '+str(min_bet) + '\n'
 
     if max_bet<0:
         max_bet=player.stack

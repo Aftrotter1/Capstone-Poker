@@ -65,7 +65,7 @@ class Hand:
         self.dealer=False
         self.hand_value=0
         self.rep=''
-        self.quality=0
+        self.quality=[0, 0, 0, 0, 0]
         self.raw_data=0
         self.is_folded=False
         self.stack=1000
@@ -117,17 +117,29 @@ class Hand:
    
         
     
-    def get_value(self):
-        desc_list = ['High Card', 'Pair', '2 Pair', '3 of a Kind', 'Straight', 'Flush', 'Full House', '4 of a Kind', 'Straight Flush']
-        
+    def get_value(self):        
         hand_value, quality=pokerhands.evaluate_hand(self.total_cards)
         
-        self.rep=desc_list[hand_value]
         self.hand_value=hand_value
         self.quality = quality
         
     
-        return hand_value, quality, self.rep
+        return hand_value, quality
+    
+
+    def get_rep(self):
+        desc_list = ['High Card', 'Pair', '2 Pair', '3 of a Kind', 'Straight', 'Flush', 'Full House', '4 of a Kind', 'Straight Flush']
+        card_list = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        rep = desc_list[self.hand_value]
+
+        if self.hand_value in (0, 1, 3, 7):
+            rep += ' ['+ card_list[self.quality[0]] +']'
+        elif self.hand_value in (2, 6):
+            rep += ' ['+ card_list[self.quality[0]] + ', ' + card_list[self.quality[3]] +']'
+        elif self.hand_value in (4, 5, 8):
+            rep += ' ['+ card_list[self.quality[0]] +' high]'
+
+        return rep
 
    
     def print_cards(self, out_string):
@@ -757,6 +769,7 @@ def showdown(pot, out_string):
         for player in pot.players:
             if player.is_folded==False:
                 player.get_value()
+                player.rep = player.get_rep()
                 scoring.append(player)
                  
                  
@@ -906,13 +919,12 @@ def run_game(
 
             pot.set_blinds()
 
-            log += 'Hand ' + str(table.hands)
-            log += 'Blinds: ' + str(table.blinds)
+            log += ' Blinds: ' + str(table.blinds)
 
             log = ante_up(pot, deck, log)
 
             while pot.stage < 4:
-                deck.deal_to(table, Pot.deal_sequence[pot.stage], True)
+                log = deck.deal_to(table, log, Pot.deal_sequence[pot.stage], True)
                 log += str(Pot.stage_dict[pot.stage])
                 log = table.print_cards(log)
                 log = betting_round(pots[-1], table, log)

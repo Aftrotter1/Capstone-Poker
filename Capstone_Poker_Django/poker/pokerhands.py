@@ -61,7 +61,7 @@ def from_straight(cards):
 
 def evaluate_hand(cards):
     hand_value = 0
-    quality = 0
+    quality = [0, 0, 0, 0, 0]
     values = []
     unique_vals = []
     suits = {'s': [], 'c': [], 'h': [], 'd': []}
@@ -77,11 +77,11 @@ def evaluate_hand(cards):
     for suit, vals in suits.items():        # Checking for flush
         if len(vals) >= 5:
             straight = is_straight(vals)
-            if straight > 0:
-                return STRAIGHT_FLUSH, straight                                         # Best outcome, can't be beaten
             vals.sort(reverse=True)
+            if straight > 0:
+                return STRAIGHT_FLUSH, vals                                         # Best outcome, can't be beaten
             hand_value = FLUSH                                                          # May be beaten by 4 of a kind or full house
-            quality = vals[0]*pow(14, 4) + vals[1]*pow(14, 3) + vals[2]*pow(14, 2) + vals[3]*14 + vals[4]
+            quality = vals
 
     multiples_l=[[], [], [], [], []] # first two lists will not be used
 
@@ -96,7 +96,7 @@ def evaluate_hand(cards):
         high = unique_vals[0]
         if high == foursome:
             high = unique_vals[1]
-        quality = 14*foursome + high
+        quality = [foursome, foursome, foursome, foursome, high]
         return FOUR_KIND, quality                                                       # Next best after straight flush
     
     if len(multiples_l[3]) > 0:     # Check for 3 of a kind
@@ -104,13 +104,13 @@ def evaluate_hand(cards):
             multiples_l[3].sort(reverse=True)
             triplet = multiples_l[3][0]
             pair = multiples_l[3][1]      # Impossible to have 2 triplets and a pair
-            quality = triplet*14 + pair
+            quality = [triplet, triplet, triplet, pair, pair]
             return FULL_HOUSE, quality                                                  # Full house is next best hand
         else:
             triplet = multiples_l[3][0]
             if len(multiples_l[2]) > 0:
                 pair = max(multiples_l[2])
-                quality = triplet*14 + pair
+                quality = [triplet, triplet, triplet, pair, pair]
                 return FULL_HOUSE, quality                                              # Full house
             if hand_value == FLUSH:
                 return FLUSH, quality                                                   # Flush is next best
@@ -122,7 +122,7 @@ def evaluate_hand(cards):
                 high2 = unique_vals[2]
             elif high2 == triplet:
                 high2 = unique_vals[2]
-            quality = triplet*pow(14, 2) + high*14 + high2                              # Need to check for straight before returning this
+            quality = [triplet, triplet, triplet, high, high2]                              # Need to check for straight before returning this
     
     straight_qual = is_straight(values)
     if straight_qual > 0:
@@ -140,7 +140,7 @@ def evaluate_hand(cards):
             high = unique_vals[1]
         if high == pair2:
             high = unique_vals[2]
-        quality = pair1*pow(14, 2) + pair2*14 + high
+        quality = [pair1, pair1, pair2, pair2, high]
         return TWO_PAIR, quality
     elif len(multiples_l[2]) == 1:                                                      # 1 pair
         pair = multiples_l[2][0]
@@ -151,15 +151,11 @@ def evaluate_hand(cards):
                 i += 1
             highs.append(unique_vals[i])
             i += 1
-        quality = pair*pow(14, 3) + highs[0]*pow(14, 2) + highs[1]*14 + highs[2]
+        quality = [pair, pair] + highs
         return PAIR, quality
     
     quality = 0
-    for i in range(5):
-        if i >= len(unique_vals):
-            break
-        quality += unique_vals[i]*pow(14, 4-i)
-    return HIGH_CARD, quality                                                           # High card
+    return HIGH_CARD, unique_vals                                                           # High card
 
         
 
