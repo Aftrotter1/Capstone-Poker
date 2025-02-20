@@ -7,12 +7,23 @@ names={1:'deuce', 2:'three', 3:'four', 4:'five', 5:'six', 6:'seven', 7:'eight', 
 from collections import Counter
 from operator import attrgetter
 from .hand_values import *
+from .poker import Card
 
 #conversion function for values>names
 
 def cn(value):
     name=names[value]
     return str(name)
+
+# for testing purposes
+
+def get_cards(card_list):
+    cards = []
+    for name in card_list.split(','):
+        rank, suit = name
+        cards.append(Card(rank, suit))
+
+    return cards
 
 #straight detector
 
@@ -59,8 +70,10 @@ def flush_value(cards):
     fl_vals = []
 
     for suit, vals in suits.items():
-        flush = max(flush, len(vals))
-        fl_vals = vals
+        if len(vals) > flush:
+            flush = len(vals)
+            fl_vals = vals
+    fl_vals.sort(reverse=True)
     
     return flush, fl_vals
 
@@ -81,7 +94,6 @@ def evaluate_hand(cards):
     flush_val, vals = flush_value(cards)
     if flush_val >= 5:
         straight = straight_qual(vals)
-        vals.sort(reverse=True)
         if not straight is None:
             return STRAIGHT_FLUSH, vals                                         # Best outcome, can't be beaten
         hand_value = FLUSH                                                          # May be beaten by 4 of a kind or full house
@@ -148,19 +160,21 @@ def evaluate_hand(cards):
         return TWO_PAIR, quality
     elif len(multiples_l[2]) == 1:                                                      # 1 pair
         pair = multiples_l[2][0]
-        quality = [pair, pair, 0, 0, 0]
+        quality = [pair, pair]
         i = 0
-        j = 2
-        while i < len(unique_vals) and j < 5:
+        while i < len(unique_vals) and len(quality) < 5:
             if pair == unique_vals[i]:
                 i += 1
                 continue
-            quality[j] = unique_vals[i]
-            j += 1
+            quality.append(unique_vals[i])
             i += 1
         return PAIR, quality
     
-    return HIGH_CARD, unique_vals                                                           # High card
+    quality = unique_vals
+    if len(quality) > 5:
+        quality = quality[:5]
+
+    return HIGH_CARD, quality                                                           # High card
 
         
 
