@@ -122,6 +122,9 @@ class Hand:
         
         self.hand_value=hand_value
         self.quality = quality
+
+        if not type(self.quality) is list:
+            raise TypeError("non-list quality: " + str(self.quality))
         
     
         return hand_value, quality
@@ -131,6 +134,8 @@ class Hand:
         desc_list = ['High Card', 'Pair', '2 Pair', '3 of a Kind', 'Straight', 'Flush', 'Full House', '4 of a Kind', 'Straight Flush']
         card_list = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
         rep = desc_list[self.hand_value]
+
+        x = self.quality[0]
 
         if self.hand_value in (0, 1, 3, 7):
             rep += ' ['+ card_list[self.quality[0]] +']'
@@ -142,18 +147,21 @@ class Hand:
         return rep
 
    
-    def print_cards(self, out_string):
+    def print_cards(self, out_string, table_cards=None):
 
-        rep=''
+        rep=self.name + ': '
 
         if self.is_folded:
-            rep='FF'
+            rep += 'FF'
 
         else:
 
             for card in self.cards:
 
-                rep+='  '+str(card)
+                rep+=' '+str(card)
+
+        if not table_cards is None:
+            rep += ' ' + str(table_cards)
 
         out_string += rep + '\n'
         return out_string
@@ -347,7 +355,7 @@ class Table(Hand):                  # Table is a Hand subclass because it has ca
         
     def print_cards(self, out_string):
 
-        rep='Community cards_______________\n'
+        rep='['
 
         if self.is_folded:
             rep='FF'
@@ -358,7 +366,7 @@ class Table(Hand):                  # Table is a Hand subclass because it has ca
                 card.faceup=True
                 rep+=str(card)+' '
 
-        out_string += rep + '\n'
+        out_string += rep + ']\n'
         return out_string
 
     def print_players(self, out_string):
@@ -376,6 +384,7 @@ class Table(Hand):                  # Table is a Hand subclass because it has ca
         self.cards.append(cards)
         for player in self.players:
             player.total_cards.append(cards)
+            player.table_cards.append(cards)
       
       
 
@@ -783,7 +792,7 @@ def showdown(pot, out_string):
 
                 # if player.stratname!='Human':
                 #     player.flip()
-                out_string = player.print_cards(out_string)
+                out_string = player.print_cards(out_string, list(map(lambda x: str(x), player.table_cards)))
                 out_string += player.name+' has '+str(player.rep) + '\n'
                 
                 
@@ -925,7 +934,7 @@ def run_game(
 
             while pot.stage < 4:
                 log = deck.deal_to(table, log, Pot.deal_sequence[pot.stage], True)
-                log += str(Pot.stage_dict[pot.stage])
+                log += str(Pot.stage_dict[pot.stage]) + ' -- table: '
                 log = table.print_cards(log)
                 log = betting_round(pots[-1], table, log)
 

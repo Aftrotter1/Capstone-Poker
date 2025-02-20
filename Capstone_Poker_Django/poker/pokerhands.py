@@ -25,7 +25,7 @@ def cn(value):
 
 #straight detector
 
-def is_straight(values):
+def straight_qual(values):
     unique = []
     for elem in values:
         if not elem in unique:
@@ -37,8 +37,8 @@ def is_straight(values):
     
     for i in range(len(unique)-4):
         if unique[i] - 1 == unique[i+1] and unique[i] - 2 == unique[i+2] and unique[i] - 3 == unique[i+3] and unique[i] - 4 == unique[i+4]:
-            return unique[i]
-    return 0
+            return unique[i:i+5]
+    return None
 
 
 def from_straight(cards):
@@ -76,9 +76,9 @@ def evaluate_hand(cards):
 
     for suit, vals in suits.items():        # Checking for flush
         if len(vals) >= 5:
-            straight = is_straight(vals)
+            straight = straight_qual(vals)
             vals.sort(reverse=True)
-            if straight > 0:
+            if not straight is None:
                 return STRAIGHT_FLUSH, vals                                         # Best outcome, can't be beaten
             hand_value = FLUSH                                                          # May be beaten by 4 of a kind or full house
             quality = vals
@@ -124,9 +124,9 @@ def evaluate_hand(cards):
                 high2 = unique_vals[2]
             quality = [triplet, triplet, triplet, high, high2]                              # Need to check for straight before returning this
     
-    straight_qual = is_straight(values)
-    if straight_qual > 0:
-        return STRAIGHT, straight_qual
+    straight = straight_qual(values)
+    if not straight is None:
+        return STRAIGHT, straight
     
     if hand_value == THREE_KIND:
         return THREE_KIND, quality                                                      # Now send 3 of a kind through
@@ -154,7 +154,6 @@ def evaluate_hand(cards):
         quality = [pair, pair] + highs
         return PAIR, quality
     
-    quality = 0
     return HIGH_CARD, unique_vals                                                           # High card
 
         
