@@ -1,4 +1,7 @@
-from ..pokerstrat import Strategy, calc_bet
+from ..pokerstrat import Strategy
+from ..pokerhands import flush_value as flush
+from ..hand_values import *
+
 class SklanskySys2(Strategy):
 
     #sklansky all-in tournament strategy
@@ -11,9 +14,11 @@ class SklanskySys2(Strategy):
         score*=(pot.limpers+1)
         score=int(score)
         
-        hand_value, rep, tie_break, raw_data=player.get_value()
-        raw_values, flush_score, straight, gappers=raw_data
-        raw_values.sort()
+        hand_value, quality=player.get_value()
+        raw_values = list(map(lambda x: x.value, player.total_cards))
+        raw_values.sort(reverse=True)
+        raw_values = tuple(raw_values)
+        flush_value = flush(player.cards)
         
         key=((range(0,19)), (range(20,39)), (range(40,59)), (range(60,79)), (range(80,99)), (range(100,149)), (range(150,199)), (range(200, 399)), (range(400, 1000)))
 
@@ -46,38 +51,38 @@ class SklanskySys2(Strategy):
         elif score in range (100,149) and raw_values in ((13,13),(12,12),(11,11),(10,10),(9,9),(13,12),(13,11),(12,11)):
             GAI=True
         elif score in range (80,99):
-            if 'pair' in rep:
+            if hand_value in (PAIR, TWO_PAIR):
                 GAI=True
             elif raw_values in ((13,12),(13,11),(12,11)):
                 GAI=True
-            elif flush_score==2 and 13 in raw_values:
+            elif flush_value==2 and 13 in raw_values:
                 GAI=True
-            elif flush_score==2 and straight>=5:
+            elif flush_value==2 and hand_value == STRAIGHT:
                 GAI=True
         elif score in range (60,79):
-            if 'pair' in rep:
+            if hand_value in (PAIR, TWO_PAIR):
                 GAI=True
             elif 13 in raw_values:
                 GAI=True
-            elif flush_score==2 and 12 in raw_values:
+            elif flush_value==2 and 12 in raw_values:
                 GAI=True
-            elif flush_score==2 and gappers<=1:
+            elif flush_value==2:# and gappers<=1:
                 GAI=True
         elif score in range (40,59):
-            if 'pair' in rep:
+            if hand_value in (PAIR, TWO_PAIR):
                 GAI=True
             elif 13 or 12 in raw_values:
                 GAI=True
-            elif flush_score==2 and 12 in raw_values:
+            elif flush_value==2 and 12 in raw_values:
                 GAI=True
-            elif flush_score==2 and gappers<=1:
+            elif flush_value==2:# and gappers<=1:
                 GAI=True
         elif score in range (20,39):
-            if 'pair' in rep:
+            if hand_value in (PAIR, TWO_PAIR):
                 GAI=True
             elif 13 or 12 in raw_values:
                 GAI=True
-            elif flush_score==2:
+            elif flush_value==2:
                 GAI=True
         elif score in range(0,19):
             GAI=True

@@ -124,7 +124,8 @@ class Hand:
         self.quality = quality
 
         if not type(self.quality) is list:
-            raise TypeError("non-list quality: " + str(self.quality))
+            str_cards = self.print_cards("", self.table_cards)
+            raise TypeError("non-list quality: " + str(self.quality) + " | " + str(hand_value) + ", " + str_cards)
         
     
         return hand_value, quality
@@ -134,8 +135,6 @@ class Hand:
         desc_list = ['High Card', 'Pair', '2 Pair', '3 of a Kind', 'Straight', 'Flush', 'Full House', '4 of a Kind', 'Straight Flush']
         card_list = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
         rep = desc_list[self.hand_value]
-
-        x = self.quality[0]
 
         if self.hand_value in (0, 1, 3, 7):
             rep += ' ['+ card_list[self.quality[0]] +']'

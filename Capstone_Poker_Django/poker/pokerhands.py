@@ -4,18 +4,9 @@
 
 names={1:'deuce', 2:'three', 3:'four', 4:'five', 5:'six', 6:'seven', 7:'eight', 8:'nine', 9:'ten', 10:'jack', 11:'queen', 12:'king', 13:'ace'}
 
-STRAIGHT_FLUSH = 8
-FOUR_KIND = 7
-FULL_HOUSE = 6
-FLUSH = 5
-STRAIGHT = 4
-THREE_KIND = 3
-TWO_PAIR = 2
-PAIR = 1
-HIGH_CARD = 0
-
 from collections import Counter
 from operator import attrgetter
+from .hand_values import *
 
 #conversion function for values>names
 
@@ -33,7 +24,7 @@ def straight_qual(values):
     unique.sort(reverse=True)
 
     if len(unique) < 5:
-        return 0
+        return None
     
     for i in range(len(unique)-4):
         if unique[i] - 1 == unique[i+1] and unique[i] - 2 == unique[i+2] and unique[i] - 3 == unique[i+3] and unique[i] - 4 == unique[i+4]:
@@ -59,29 +50,42 @@ def from_straight(cards):
 
     return 5 - in_5
 
+def flush_value(cards):
+    suits = {'s': [], 'c': [], 'h': [], 'd': []}
+    for card in cards:
+        suits[card.suit].append(card.value)
+
+    flush = 0
+    fl_vals = []
+
+    for suit, vals in suits.items():
+        flush = max(flush, len(vals))
+        fl_vals = vals
+    
+    return flush, fl_vals
+
+
 def evaluate_hand(cards):
     hand_value = 0
     quality = [0, 0, 0, 0, 0]
     values = []
     unique_vals = []
-    suits = {'s': [], 'c': [], 'h': [], 'd': []}
 
     for card in cards:
         values.append(card.value)
         if not card.value in unique_vals:
             unique_vals.append(card.value)
-        suits[card.suit].append(card.value)
     values.sort(reverse=True)
     unique_vals.sort(reverse=True)
 
-    for suit, vals in suits.items():        # Checking for flush
-        if len(vals) >= 5:
-            straight = straight_qual(vals)
-            vals.sort(reverse=True)
-            if not straight is None:
-                return STRAIGHT_FLUSH, vals                                         # Best outcome, can't be beaten
-            hand_value = FLUSH                                                          # May be beaten by 4 of a kind or full house
-            quality = vals
+    flush_val, vals = flush_value(cards)
+    if flush_val >= 5:
+        straight = straight_qual(vals)
+        vals.sort(reverse=True)
+        if not straight is None:
+            return STRAIGHT_FLUSH, vals                                         # Best outcome, can't be beaten
+        hand_value = FLUSH                                                          # May be beaten by 4 of a kind or full house
+        quality = vals
 
     multiples_l=[[], [], [], [], []] # first two lists will not be used
 
@@ -144,14 +148,16 @@ def evaluate_hand(cards):
         return TWO_PAIR, quality
     elif len(multiples_l[2]) == 1:                                                      # 1 pair
         pair = multiples_l[2][0]
-        highs = []
+        quality = [pair, pair, 0, 0, 0]
         i = 0
-        while len(highs) < 3:
+        j = 2
+        while i < len(unique_vals) and j < 5:
             if pair == unique_vals[i]:
                 i += 1
-            highs.append(unique_vals[i])
+                continue
+            quality[j] = unique_vals[i]
+            j += 1
             i += 1
-        quality = [pair, pair] + highs
         return PAIR, quality
     
     return HIGH_CARD, unique_vals                                                           # High card
