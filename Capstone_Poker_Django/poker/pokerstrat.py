@@ -12,12 +12,12 @@ def discoverStrats(bot_package):
     for _, module_name, is_pkg in pkgutil.iter_modules(bot_package.__path__):
         if is_pkg:
             continue
-    moduleName = f"{bot_package.__name__}.{module_name}"
-    module = importlib.import_module(moduleName)
-    for name, obj in inspect.getmembers(module, inspect.isclass):
-        # Ensure the class is a subclass of Strategy and not Strategy itself.
-        if issubclass(obj, Strategy) and obj is not Strategy:
-            foundStrats.append(obj)
+        moduleName = f"{bot_package.__name__}.{module_name}"
+        module = importlib.import_module(moduleName)
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            # Ensure the class is a subclass of Strategy and not Strategy itself.
+            if issubclass(obj, Strategy) and obj is not Strategy:
+                foundStrats.append(obj)
     return foundStrats
 
 
