@@ -7,23 +7,12 @@ names={1:'deuce', 2:'three', 3:'four', 4:'five', 5:'six', 6:'seven', 7:'eight', 
 from collections import Counter
 from operator import attrgetter
 from .hand_values import *
-from .poker import Card
 
 #conversion function for values>names
 
 def cn(value):
     name=names[value]
     return str(name)
-
-# for testing purposes
-
-def get_cards(card_list):
-    cards = []
-    for name in card_list.split(','):
-        rank, suit = name
-        cards.append(Card(rank, suit))
-
-    return cards
 
 #straight detector
 

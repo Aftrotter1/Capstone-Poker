@@ -1,6 +1,15 @@
 from django.test import TestCase
-from .pokerhands import get_cards, flush_value, evaluate_hand
+from .pokerhands import flush_value, evaluate_hand
 from .hand_values import *
+from .poker import Card
+
+def get_cards(card_list):
+    cards = []
+    for name in card_list.split(','):
+        rank, suit = name
+        cards.append(Card(rank, suit))
+
+    return cards
 
 class TestEvaluateHand(TestCase):   #TODO: Long straight, 3 pairs, 2 sets of 3, 6-card flush, A-high straight, A-low straight
     def test_two_unalike(self):

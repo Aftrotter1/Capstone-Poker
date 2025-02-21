@@ -1,9 +1,9 @@
 
 import random
-from . import pokerhands
+from .pokerhands import evaluate_hand
 from operator import attrgetter
-import time
-from . import pokerstrat
+# import time
+# from . import pokerstrat
 
 
 class Card:             # Defines a card object
@@ -118,7 +118,7 @@ class Hand:
         
     
     def get_value(self):        
-        hand_value, quality=pokerhands.evaluate_hand(self.total_cards)
+        hand_value, quality=evaluate_hand(self.total_cards)
         
         self.hand_value=hand_value
         self.quality = quality
@@ -784,7 +784,7 @@ def showdown(pot, out_string):
                  
         #rank hands in value+tie break order
                  
-        scoring.sort(key=lambda x: pokerhands.evaluate_hand(x.total_cards), reverse=True)
+        scoring.sort(key=lambda x: evaluate_hand(x.total_cards), reverse=True)
         split_pot=[]
         out_string += '\n\n\n'
         for player in scoring:
