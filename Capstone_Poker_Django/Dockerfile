@@ -1,6 +1,7 @@
+
 # Stage 1: Base build stage
 FROM python:3.13-slim AS builder
- 
+USER root
 # Create the app directory
 RUN mkdir /app
  

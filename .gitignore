@@ -15,7 +15,8 @@ env/
 *.pot
 *.pyc
 local_settings.py
-db.sqlite3  
+db.sqlite3 
+.env
 
 # MacOS
 .DS_Store
