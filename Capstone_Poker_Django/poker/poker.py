@@ -976,6 +976,41 @@ def run_game(
     #return buffer.getvalue()
     return summary + '\n===========================================================================================================\n\nFull game log:\n\n' + log
 
+def run_tournament(num_games: int, custom_config: dict, smallblind: int, stack: int):
+    import random
+    from .poker import run_game
+
+    player_list = []
+    for strat_name, count in custom_config.items():
+        for i in range(count):
+            player_list.append((strat_name, f"{strat_name}{i+1}"))
+
+    total_players = len(player_list)
+    if total_players == 0:
+        return "No players in config."
+
+    total_seats = 8 * num_games
+    if total_seats % total_players != 0:
+        return "Players can't be evenly seated."
+
+    seats_per_player = total_seats // total_players
+    seat_pool = []
+    for (sname, pid) in player_list:
+        for _ in range(seats_per_player):
+            seat_pool.append((sname, pid))
+
+    random.shuffle(seat_pool)
+    logs = []
+
+    for g in range(num_games):
+        chunk = seat_pool[g*8 : (g+1)*8]
+        mini_config = {}
+        for (sname, _) in chunk:
+            mini_config[sname] = mini_config.get(sname, 0) + 1
+        game_log = run_game(custom_config=mini_config, smallblind=smallblind, stack=stack)
+        logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
+
+    return "".join(logs)
 if __name__ == '__main__':
     log, summary = run_game(4, 10, 1000)
     print(summary)
