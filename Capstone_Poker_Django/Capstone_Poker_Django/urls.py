@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+     path('anchor/', include('anchor.urls')),
      path('', include('poker.urls')),
-    path("poker/", include("poker.urls")),
     path("admin/", admin.site.urls),
 ]

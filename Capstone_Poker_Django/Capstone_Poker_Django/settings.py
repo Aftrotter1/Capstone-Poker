@@ -17,13 +17,11 @@ from dotenv import load_dotenv
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$rgg8x6g$^tr%b0@00o=6of)0ygh8!li_f1f&=ako3wtp2!ch+'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY"),
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'poker'
+    'poker.apps.PokerConfig',
+    'anchor',
 ]
 
 MIDDLEWARE = [
@@ -136,4 +135,5 @@ STATICFILES_DIRS= (os.path.join(BASE_DIR, 'static'),)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'poker/bots')
 MEDIA_URL = '/bots/'
-
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = 'login'
