@@ -4,7 +4,9 @@ from . import poker
 from . import bots
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.contrib.auth.decorators import user_passes_test
 from django.conf import settings
+from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 from django.views.generic import TemplateView
 import time
@@ -93,8 +95,15 @@ def logtext(request):
     response['Content-Disposition'] = 'Attachment;filename="logoutput.txt"'
     return response
 
+def admin_check(user):
+    if request.user.is_superuser:
+        return redirect(adminprofile)
+    else:
+        return redirect(profile)
+
 @login_required
 def profile(request):
+   
         bots = Bot.objects.all()
         if request.method == 'POST':
             bot= BotForm(request.POST,request.FILES)
@@ -110,11 +119,32 @@ def profile(request):
                 return render(request, 'profile.html',context)
         context={"bots": BotForm(), "botlist": bots}
         return render(request, 'profile.html',context)
+def profilechoice(request):
+
+         return redirect(reverse('adminprofile'))
+    
+@user_passes_test(admin_check)
+def adminprofile(request):
+    
+        bots = Bot.objects.all()
+        if request.method == 'POST':
+            bot= BotForm(request.POST,request.FILES)
+            if bot.is_valid():
+                model_instance = bot.save(commit=False)
+                if model_instance.user_id is None:
+                     model_instance.user_id = "1"
+                model_instance.user=  request.user
+                model_instance.save()
+              
+            else:
+                context={"bots": bot}
+                return render(request, 'admin.html',context)
+        context={"bots": BotForm(), "botlist": bots}
+        return render(request, 'admin.html',context)
 
 def begin(request):
     return render(request, 'begin.html')
     
-
 
 def studentsgame(request):
     return render(request, 'start.html')

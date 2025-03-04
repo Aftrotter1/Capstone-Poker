@@ -20,6 +20,8 @@ urlpatterns = [
     path("customgame/", views.customgame, name="customgame"),
     path('admin/', admin.site.urls,),
     path("profile/", views.profile, name="profile"),
+    path("adminprofile/", views.adminprofile, name="adminprofile"),
+    path("profilechoice/", views.profilechoice, name="profilechoice"),
     path('',views.begin,name="begin"),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', CustomLoginView.as_view(redirect_authenticated_user=True, template_name='loginstu.html',
