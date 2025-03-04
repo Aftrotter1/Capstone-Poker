@@ -96,10 +96,7 @@ def logtext(request):
     return response
 
 def admin_check(user):
-    if request.user.is_superuser:
-        return redirect(adminprofile)
-    else:
-        return redirect(profile)
+    return user.is_superuser
 
 @login_required
 def profile(request):
@@ -120,8 +117,10 @@ def profile(request):
         context={"bots": BotForm(), "botlist": bots}
         return render(request, 'profile.html',context)
 def profilechoice(request):
-
+    if request.user.is_superuser:
          return redirect(reverse('adminprofile'))
+    else:
+         return redirect(reverse('profile'))
     
 @user_passes_test(admin_check)
 def adminprofile(request):
