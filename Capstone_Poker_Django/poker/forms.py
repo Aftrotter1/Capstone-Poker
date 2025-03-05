@@ -9,7 +9,7 @@ from poker.models import BaseBot  #models.py
 class StudentBotForm(forms.ModelForm):  
     class Meta:  
         model = StudentBot  
-        fields = ('name','Bot_File')
+        fields = ('Bot_Name','Bot_File')
  
     def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -17,8 +17,8 @@ class StudentBotForm(forms.ModelForm):
                 field.widget.attrs['class'] = 'form-control'   
 class BaseBotForm(forms.ModelForm):  
     class Meta:  
-        model = StudentBot  
-        fields = ('name','Bot_File')
+        model = BaseBot  
+        fields = ('Bot_Name','Bot_File')
     def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             for field_name, field in self.fields.items():

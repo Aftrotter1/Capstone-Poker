@@ -7,20 +7,20 @@ from django.contrib.auth.models import User
 from anchor.models.fields import SingleAttachmentField
 
 class BaseBot(models.Model):
-    name = models.CharField(max_length=140)
+    Bot_Name = models.CharField(max_length=140)
     Bot_File = models.FileField(upload_to="")
     
     class Meta:
-        db_table = 'StudentPokerBots'
+        db_table = 'BasePokerBots'
 
 class StudentBot(models.Model):
-    name = models.CharField(max_length=140)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    Bot_Name = models.CharField(max_length=140)
+    Bot_User = models.ForeignKey(User, on_delete=models.CASCADE)
     Bot_File = models.FileField(upload_to="")
     uploaded_at= models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'BasePokerBots'
+        db_table = 'StudentPokerBots'
 
 
 # Extending User Model Using a One-To-One Link
