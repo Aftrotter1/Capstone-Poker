@@ -3,17 +3,26 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm 
 from .models import Profile
 
-from poker.models import Bot  #models.py
+from poker.models import StudentBot  #models.py
+from poker.models import BaseBot  #models.py
      
-class BotForm(forms.ModelForm):  
+class StudentBotForm(forms.ModelForm):  
     class Meta:  
-        model = Bot  
+        model = StudentBot  
         fields = ('name','Bot_File')
  
     def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             for field_name, field in self.fields.items():
                 field.widget.attrs['class'] = 'form-control'   
+class BaseBotForm(forms.ModelForm):  
+    class Meta:  
+        model = StudentBot  
+        fields = ('name','Bot_File')
+    def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            for field_name, field in self.fields.items():
+                field.widget.attrs['class'] = 'form-control'  
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=100,
                                required=True,

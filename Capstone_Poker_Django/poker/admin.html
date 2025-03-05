@@ -16,11 +16,9 @@
             <p><h1>Django File Upload Save to Mysql Database-Admin Page</h1></p>
             <form method="POST" class="post-form" enctype="multipart/form-data">  
                     {% csrf_token %}  
-                    {{bots.as_p}}
                     <a href="{% url 'adminprofile' %}">
                     <label style = "margin: 25px;" class = "custom-file-upload" >
-                        <input style = "font-size: 20px;" type="file" accept=".py" name="bot1">
-                        <button style = "font-size: 20px;" type="submit">Upload</button>
+                        <button style = "font-size: 20px;" type="button">Run Tournament</button>
                     </a>
         
             </form>  

@@ -19,7 +19,6 @@
                     {{bots.as_p}}
                     <a href="{% url 'profile' %}">
                     <label style = "margin: 25px;" class = "custom-file-upload" >
-                        <input style = "font-size: 20px;" type="file" accept=".py" name="bot1">
                         <button style = "font-size: 20px;" type="submit">Upload</button>
                     </a>
         
@@ -35,6 +34,15 @@
     </div>
     {% empty %}
     <p> No bots</p>
+    {% endfor %}
+    {% for bots in studentbots %}
+    <div class="card mt-2">
+        <div class="card-header">
+            <strong>@{{bots.name}}</strong>
+        </div>
+    </div>
+    {% empty %}
+    <p> No student bots</p>
     {% endfor %}
 
 </div>
