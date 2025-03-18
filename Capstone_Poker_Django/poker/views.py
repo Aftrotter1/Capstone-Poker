@@ -142,6 +142,19 @@ def adminprofile(request):
         context={"bots": StudentBotForm(), "botlist": bots}
         return render(request, 'admin.html',context)
 
+@login_required
+@user_passes_test(admin_check)
+def runtourney(request):
+    bots = StudentBot.objects.all()
+    context={"bots": StudentBotForm(), "botlist": bots}
+    context["buttonclicked"] = True
+    if len(bots) >= 1:
+        game = poker.run_game(custom_config={bots[0].name: 8})
+    context["log"] = game
+    if game is None:
+        context["log"] = "none_game"
+    return render(request, 'admin.html', context)
+
 def begin(request):
     return render(request, 'begin.html')
     
