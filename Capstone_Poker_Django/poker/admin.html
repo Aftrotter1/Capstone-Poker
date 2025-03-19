@@ -16,7 +16,7 @@
             <p><h1>Django File Upload Save to Mysql Database-Admin Page</h1></p>
             <form method="POST" class="post-form" enctype="multipart/form-data">  
                     {% csrf_token %}  
-                    <a href="{% url 'adminprofile' %}">
+                    <a href="{% url 'runtourney' %}">
                     <label style = "margin: 25px;" class = "custom-file-upload" >
                         <button style = "font-size: 20px;" type="button">Run Tournament</button>
                     </a>
@@ -37,6 +37,10 @@
     {% empty %}
     <p> No bots</p>
     {% endfor %}
+
+    {% if buttonclicked %}
+    <p>{{log}}</p>
+    {% endif %}
 
 </div>
 </body>  

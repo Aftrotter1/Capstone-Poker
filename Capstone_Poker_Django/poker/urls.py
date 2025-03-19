@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls,),
     path("profile/", views.profile, name="profile"),
     path("adminprofile/", views.adminprofile, name="adminprofile"),
+    path("runtourney/", views.runtourney, name="runtourney"),
     path("profilechoice/", views.profilechoice, name="profilechoice"),
     path('',views.begin,name="begin"),
     path('register/', RegisterView.as_view(), name='register'),
