@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'poker.apps.PokerConfig',
     'anchor',
+    'mathfilters'
 ]
 
 MIDDLEWARE = [
@@ -66,7 +67,11 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
-            ],
+            ],       
+            # 'libraries':{
+            #     'math_filters': 'Capstone_Poker_Django.templatetags.math_filters',
+                
+            #     }
         },
     },
 ]

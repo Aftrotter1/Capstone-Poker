@@ -1,6 +1,7 @@
 {% extends "start.html" %}
 {% block title %}Profile Page{% endblock title %}
 {% block content %}
+{% load mathfilters %}
 <html>
 <head>
 <title>Django File Upload - cairocoders</title>
@@ -39,7 +40,9 @@
     {% endfor %}
 
     {% if buttonclicked %}
-    <p>{{log}}</p>
+    {% for key, val in scores.items %}
+    <p>{{key}}: {{val}} ({{val|mul:100.0|div:num_games}}%)</p>
+    {% endfor %}
     {% endif %}
 
 </div>

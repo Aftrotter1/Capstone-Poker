@@ -150,11 +150,13 @@ def adminprofile(request):
                 #return render(request, 'admin.html',context) send data 
                 pass
         context={"bots": StudentBotForm(), "botlist": bots}
+        # request.session.aset('botlist', context['botlist'])
         return render(request, 'admin.html',context)
 
 @login_required
 @user_passes_test(admin_check)
 def runtourney(request):
+    num_games = 50
     seen= set()
     LATEST_BOT = StudentBot.objects.values('user_id')
     bots = []
@@ -166,10 +168,10 @@ def runtourney(request):
     context={"bots": StudentBotForm(), "botlist": bots}
     context["buttonclicked"] = True
     if len(bots) >= 1:
-        game = poker.run_game(custom_config={bots[0].name: 8})
-    context["log"] = game
-    if game is None:
-        context["log"] = "none_game"
+        scores = poker.run_tournament(num_games, custom_config={bots[0].name: 8})[0]
+        scores = dict(sorted(scores.items(), reverse=True, key=lambda x: x[1]))
+        context["scores"] = scores
+        context["num_games"] = num_games
     return render(request, 'admin.html', context)
 
 def begin(request):

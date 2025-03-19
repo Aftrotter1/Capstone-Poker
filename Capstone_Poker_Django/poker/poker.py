@@ -857,6 +857,7 @@ def run_game(
 
     # Discover all Strategy subclasses in the bots package.
     bot_classes = discoverStrats(bots)
+    # bot_classes = 
 
     strategy_dict = {cls.__name__: cls for cls in bot_classes}
     # Capture print output to return as a string
@@ -876,7 +877,7 @@ def run_game(
         # If no strategies are found, print error and exit
         if not bot_classes:
             print("No bot strategies found! Cannot proceed.")
-            return
+            return "No bot strategies found! Cannot proceed."
 
         # Decide how to create players:
         if custom_config:
@@ -884,7 +885,7 @@ def run_game(
             for strat_name, count in custom_config.items():
                 if strat_name not in strategy_dict:
                     print(f"Warning: Strategy '{strat_name}' not found.")
-                    continue
+                    return f"Warning: Strategy '{strat_name}' not found."
                 chosen_cls = strategy_dict[strat_name]
                 for i in range(count):
                     player_name = f"{strat_name}{i+1}"
@@ -907,7 +908,7 @@ def run_game(
         # Ensure at least 2 players
         if len(table.players) < 2:
             print("Need at least 2 players to run a game.")
-            return
+            return "Need at least 2 players to run a game."
 
         status = 'play'
         deck = Deck()
@@ -974,9 +975,10 @@ def run_game(
         sys.stdout = old_stdout
 
     #return buffer.getvalue()
-    return summary + '\n===========================================================================================================\n\nFull game log:\n\n' + log
+    log = summary + '\n===========================================================================================================\n\nFull game log:\n\n' + log
+    return table.winner, log
 
-def run_tournament(num_games: int, custom_config: dict, smallblind: int, stack: int):
+def run_tournament(num_games: int, custom_config: dict, smallblind: int = 10, stack: int = 100):
     import random
     from .poker import run_game
 
@@ -1001,16 +1003,21 @@ def run_tournament(num_games: int, custom_config: dict, smallblind: int, stack: 
 
     random.shuffle(seat_pool)
     logs = []
+    scores = dict()
 
     for g in range(num_games):
         chunk = seat_pool[g*8 : (g+1)*8]
         mini_config = {}
         for (sname, _) in chunk:
             mini_config[sname] = mini_config.get(sname, 0) + 1
-        game_log = run_game(custom_config=mini_config, smallblind=smallblind, stack=stack)
+        winner, game_log = run_game(custom_config=mini_config, smallblind=smallblind, stack=stack)
+        if winner in scores.keys():
+            scores[winner] += 1
+        else:
+            scores[winner] = 1
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
 
-    return "".join(logs)
+    return scores, "".join(logs)
 if __name__ == '__main__':
     log, summary = run_game(4, 10, 1000)
     print(summary)
