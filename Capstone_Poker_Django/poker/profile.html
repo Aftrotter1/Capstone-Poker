@@ -38,7 +38,9 @@
     {% for bots in studentbots %}
     <div class="card mt-2">
         <div class="card-header">
-            <strong>@{{bots.name}}</strong>
+            <strong>Bot Name: {{bots.name}}</strong>
+            <p></p>
+            <strong>Bot User: {{bots.user}}</strong>
         </div>
     </div>
     {% empty %}

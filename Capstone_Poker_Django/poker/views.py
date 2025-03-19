@@ -141,10 +141,6 @@ def adminprofile(request):
             if recent_bot and bot['user_id'] not in seen:
                 bots.append(recent_bot)
                 seen.add(bot['user_id'])
-                
-
-        for bot in bots:
-            print(bot.uploaded_at)
         if request.method == 'POST':
             if 1==1: #if tournament logic is valid
                 pass#add tournament logic
@@ -159,7 +155,14 @@ def adminprofile(request):
 @login_required
 @user_passes_test(admin_check)
 def runtourney(request):
-    bots = StudentBot.objects.all()
+    seen= set()
+    LATEST_BOT = StudentBot.objects.values('user_id')
+    bots = []
+    for bot in LATEST_BOT:
+            recent_bot= StudentBot.objects.filter(user_id=bot['user_id']).latest('uploaded_at')
+            if recent_bot and bot['user_id'] not in seen:
+                bots.append(recent_bot)
+                seen.add(bot['user_id'])
     context={"bots": StudentBotForm(), "botlist": bots}
     context["buttonclicked"] = True
     if len(bots) >= 1:
