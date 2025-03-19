@@ -11,10 +11,7 @@
 <div class="container" style="padding:20px;">
     <div class="row">
         <div class="col-12">
-            <a href="/download/">
-                <button class = "button" type ="button">Download Template </button>
-            </a>
-            <p><h1>Django File Upload Save to Mysql Database-Admin Page</h1></p>
+            <h1>Admin Tournament Page</h1>
             <form method="POST" class="post-form" enctype="multipart/form-data">  
                     {% csrf_token %}  
                     <a href="{% url 'runtourney' %}">
@@ -25,7 +22,7 @@
             </form>  
         </div>
     </div>
-
+    <h1>Student Bots:</h1>
     {% for bot in botlist %}
  
     <div class="card mt-2">

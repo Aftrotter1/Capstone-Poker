@@ -24,13 +24,25 @@
             <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ml-auto">
-                  <a href="{% url 'profile' %}" class="nav-item nav-link">Profile</a>
-                  <a href="#" class="nav-item nav-link">Logout</a>
-                  <a href="#" class="nav-item nav-link">Sign in</a>
-                </div>
+            <div class="navbar-nav ml-auto">
+              {% if user.is_authenticated %}
+                <form method="post" action="{% url 'profilechoice' %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-lg" type="submit">Bot Testing</button>
+          </form>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-lg" type="submit">Logout</button>
+          </form>
+              {% else %}
+              <form method="post" action="{% url 'login' %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-lg" type="submit">Sign in</button>
+          </form>
+              {% endif %}
             </div>
+            </div>
+          </div>
         </nav>
         <!--Any flash messages pop up in any page because this is the base template-->
         {% if messages %}
@@ -67,22 +79,6 @@
     </button>
   </div>
 {% endif %}
-
-<div class="navbar-nav ml-auto">
-    {% if user.is_authenticated %}
-      <a href="#" class="nav-item nav-link">Profile</a>
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button class="btn btn-primary btn-lg" type="submit">Logout</button>
-</form>
-    {% else %}
-    <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        <button class="btn btn-primary btn-lg" type="submit">Sign in</button>
-</form>
-    {% endif %}
-
-  </div>
 
 
 </body>
