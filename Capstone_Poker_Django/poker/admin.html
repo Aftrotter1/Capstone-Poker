@@ -26,9 +26,12 @@
     </div>
 
     {% for bot in botlist %}
+ 
     <div class="card mt-2">
         <div class="card-header">
-            <strong>@{{bot.name}}</strong>
+            <strong>Bot Name: {{bot.name}}</strong>
+            <p></p>
+            <strong>Bot User: {{bot.user}}</strong>
         </div>
     </div>
     {% empty %}
