@@ -2,14 +2,11 @@
 {% block title %} Home Page {% endblock title%}
 {% block content %}
     <div class="jumbotron">
-        <h1 class="display-4">Welcome</h1>
-        <p class="lead">
-           Works
-        </p>
+        <h1 class="display-4">Poker Tournament Website</h1>
         <hr class="my-4">
         <p class="lead">
             {% if user.is_authenticated %}
-            <a href="{% url 'profilechoice' %}" class="nav-item nav-link">Profile</a>
+            <a href="{% url 'profilechoice' %}" class="nav-item nav-link">Bot Testing</a>
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
               <button class="btn btn-primary btn-lg" type="submit">Logout</button>
