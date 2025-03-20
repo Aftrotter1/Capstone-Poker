@@ -28,6 +28,8 @@ from poker.forms import StudentBotForm
 from poker.forms import BaseBotForm
 from .models import StudentBot
 from .models import BaseBot
+from .models import TournamentData
+from .models import Tournament
 from django.db.models import Max
 from django.db.models import Min
 
@@ -167,7 +169,7 @@ def runtourney(request):
             bots.append(recent_bot)
             seen.add(bot['user_id'])
     
-    # Prepare context with the form and list of bots.
+    # Prepare context with the form and  of bots.
     context = {
         "bots": StudentBotForm(),  # This form renders the bot selection checkboxes in your template.
         "botlist": bots,
