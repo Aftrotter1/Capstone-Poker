@@ -1014,6 +1014,7 @@ def run_tournament(
     
     total_players = len(player_list)
     if total_players < min_players:
+        raise Exception(f'{total_players} < {min_players}')
         # Return two values: empty scores + error message
         return {}, "Not enough players in config."
 
@@ -1062,6 +1063,7 @@ def run_tournament(
 
         scores[winner] = scores.get(winner, 0) + 1
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
+    # raise Exception(str(scores))
 
     return scores, "".join(logs)
 

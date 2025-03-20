@@ -174,7 +174,7 @@ def runtourney(request):
         "buttonclicked": False,
     }
     
-    if request.method == "POST":
+    if True:#request.method == "POST":
         context["buttonclicked"] = True
         # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
         selected_bot_ids = request.POST.getlist('bot_ids')
@@ -200,6 +200,8 @@ def runtourney(request):
                 game_size=8,      # you can adjust this if needed
                 min_players=2
             )
+            if not scores:
+                raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
             # Sort scores in descending order
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
             context["scores"] = scores
