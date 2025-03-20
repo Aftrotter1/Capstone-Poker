@@ -4,45 +4,114 @@
 {% load mathfilters %}
 <html>
 <head>
-<title>Django File Upload - cairocoders</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <title>Django File Upload - cairocoders</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <script>
+    // Filter the displayed bots by matching the text content
+    function filterBots() {
+        var input = document.getElementById("botSearch");
+        var filter = input.value.toUpperCase();
+        var cards = document.getElementsByClassName("bot-card");
+        for (var i = 0; i < cards.length; i++) {
+            var txtValue = cards[i].textContent || cards[i].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+
+    // Check all checkboxes (for latest bots, you might refine this if needed)
+    function selectAll() {
+        var checkboxes = document.getElementsByName("bot_ids");
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = true;
+        }
+    }
+
+    // Uncheck all checkboxes
+    function clearBots() {
+        var checkboxes = document.getElementsByName("bot_ids");
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = false;
+        }
+    }
+    </script>
 </head>
 <body>
 <div class="container" style="padding:20px;">
-    <div class="row">
+    <div class="row mb-3">
         <div class="col-12">
             <h1>Admin Tournament Page</h1>
-            <form method="POST" class="post-form" enctype="multipart/form-data">  
-                    {% csrf_token %}  
-                    <a href="{% url 'runtourney' %}">
-                    <label style = "margin: 25px;" class = "custom-file-upload" >
-                        <button style = "font-size: 20px;" type="button">Run Tournament</button>
-                    </a>
-        
-            </form>  
+            <!-- You might remove the old Run Tournament link if using the form below -->
         </div>
     </div>
-    <h1>Student Bots:</h1>
-    {% for bot in botlist %}
- 
-    <div class="card mt-2">
-        <div class="card-header">
-            <strong>Bot Name: {{bot.name}}</strong>
-            <p></p>
-            <strong>Bot User: {{bot.user}}</strong>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" id="botSearch" class="form-control" onkeyup="filterBots()" placeholder="Search student bots...">
+        </div>
+        <div class="col-md-6 text-end">
+            <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All Latest Student Bots</button>
+            <button type="button" class="btn btn-secondary" onclick="clearBots()">Clear Bots</button>
         </div>
     </div>
-    {% empty %}
-    <p> No bots</p>
-    {% endfor %}
+    <!-- Form for running tournament with selected bots -->
+    <form method="POST" action="{% url 'runtourney' %}">
+        {% csrf_token %}
+        <h1>Student Bots:</h1>
+        {% for bot in botlist %}
+        <div class="card mt-2 bot-card">
+            <div class="card-header">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="bot_ids" value="{{ bot.id }}">
+                    <label class="form-check-label">
+                        <strong>Bot Name: {{ bot.name }}</strong> <br>
+                        <strong>Bot User: {{ bot.user }}</strong>
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No bots</p>
+        {% endfor %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Run Tournament with Selected Bots</button>
+            </div>
+        </div>
+    </form>
 
     {% if buttonclicked %}
     {% for key, val in scores.items %}
-    <p>{{key}}: {{val}} ({{val|mul:100.0|div:num_games}}%)</p>
+    <p>{{ key }}: {{ val }} ({{ val|mul:100.0|div:num_games }}%)</p>
     {% endfor %}
     {% endif %}
-
 </div>
-</body>  
+</body>
+{% if leaderboard %}
+<h2>Leaderboard</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>User ID</th>
+            <th>Bot Name</th>
+            <th>Wins</th>
+            <th>Win Rate (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for result in leaderboard %}
+        <tr>
+            <td>{{ result.user.id }}</td>
+            <td>{{ result.bot.name }}</td>
+            <td>{{ result.wins }}</td>
+            <td>{{ result.win_rate|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 </html>
 {% endblock content %}

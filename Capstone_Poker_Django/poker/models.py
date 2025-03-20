@@ -23,23 +23,26 @@ class StudentBot(models.Model):
         db_table = 'StudentPokerBots'
 
 
-# Extending User Model Using a One-To-One Link
+from django.db import models
+from django.contrib.auth.models import User
+from PIL import Image
+
 class Profile(models.Model):
     name = models.CharField(max_length=140)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
     def __str__(self):
         return self.user.username
-    
-from PIL import Image
 
-# resizing images
-def save(self, *args, **kwargs):
-    super().save()
+    def save(self, *args, **kwargs):
+        # Call the original save() method
+        super().save(*args, **kwargs)
 
-    img = Image.open(self.avatar.path)
-
-    if img.height > 100 or img.width > 100:
-        new_img = (100, 100)
-        img.thumbnail(new_img)
-        img.save(self.avatar.path)
+        # Now resize the avatar if it exists
+        if self.avatar:
+            img = Image.open(self.avatar.path)
+            if img.height > 100 or img.width > 100:
+                new_size = (100, 100)
+                img.thumbnail(new_size)
+                img.save(self.avatar.path)

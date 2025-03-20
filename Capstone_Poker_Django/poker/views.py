@@ -157,22 +157,57 @@ def adminprofile(request):
 @user_passes_test(admin_check)
 def runtourney(request):
     num_games = 50
-    seen= set()
-    LATEST_BOT = StudentBot.objects.values('user_id')
+    seen = set()
+    # Get the latest StudentBot for each user
+    latest_bot_qs = StudentBot.objects.values('user_id')
     bots = []
-    for bot in LATEST_BOT:
-            recent_bot= StudentBot.objects.filter(user_id=bot['user_id']).latest('uploaded_at')
-            if recent_bot and bot['user_id'] not in seen:
-                bots.append(recent_bot)
-                seen.add(bot['user_id'])
-    context={"bots": StudentBotForm(), "botlist": bots}
-    context["buttonclicked"] = True
-    if len(bots) >= 1:
-        scores = poker.run_tournament(num_games, custom_config={bots[0].name: 8})[0]
-        scores = dict(sorted(scores.items(), reverse=True, key=lambda x: x[1]))
-        context["scores"] = scores
-        context["num_games"] = num_games
+    for bot in latest_bot_qs:
+        recent_bot = StudentBot.objects.filter(user_id=bot['user_id']).latest('uploaded_at')
+        if recent_bot and bot['user_id'] not in seen:
+            bots.append(recent_bot)
+            seen.add(bot['user_id'])
+    
+    # Prepare context with the form and list of bots.
+    context = {
+        "bots": StudentBotForm(),  # This form renders the bot selection checkboxes in your template.
+        "botlist": bots,
+        "buttonclicked": False,
+    }
+    
+    if request.method == "POST":
+        context["buttonclicked"] = True
+        # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
+        selected_bot_ids = request.POST.getlist('bot_ids')
+        
+        # Build a custom configuration for the tournament.
+        # This dictionary maps each bot's strategy (here, we use bot.name as a placeholder)
+        # to the number of times it should appear.
+        selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
+        custom_config = {}
+        for bot in selected_bots:
+            # For example, if a bot's name corresponds to its strategy, then:
+            custom_config[bot.name] = custom_config.get(bot.name, 0) + 1
+        
+        if not custom_config:
+            context["error"] = "No bots selected. Please select at least one bot."
+        else:
+            # Run the tournament using the new function.
+            scores, tournament_log = poker.run_tournament(
+                num_games=num_games,
+                custom_config=custom_config,
+                smallblind=10,
+                stack=100,
+                game_size=8,      # you can adjust this if needed
+                min_players=2
+            )
+            # Sort scores in descending order
+            scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
+            context["scores"] = scores
+            context["num_games"] = num_games
+            context["tournament_log"] = tournament_log
+    
     return render(request, 'admin.html', context)
+
 
 def begin(request):
     return render(request, 'begin.html')

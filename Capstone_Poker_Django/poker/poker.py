@@ -847,7 +847,7 @@ def run_game(
     :param custom_config: (dict) e.g. {"SklanskySys2": 2, "Random": 3}
     :param smallblind: (int) small blind
     :param stack: (int) starting stack
-    :return: A string containing the output of the game.
+    :return: A tuple of (winner, log). If an error occurs, returns (None, error_message).
     """
     import io
     import sys
@@ -857,15 +857,13 @@ def run_game(
 
     # Discover all Strategy subclasses in the bots package.
     bot_classes = discoverStrats(bots)
-    # bot_classes = 
-
+    # Build a quick lookup for strategies by name.
     strategy_dict = {cls.__name__: cls for cls in bot_classes}
+
     # Capture print output to return as a string
     buffer = io.StringIO()
     old_stdout = sys.stdout
     sys.stdout = buffer
-
-    # Set blinds to default
 
     log = ''
     summary = ''
@@ -874,26 +872,26 @@ def run_game(
         table = Table()
         table.blinds[0] = int(smallblind)
         table.blinds[1] = int(smallblind) * 2
-        # If no strategies are found, print error and exit
+
+        # If no strategies are found, return error as a tuple
         if not bot_classes:
             print("No bot strategies found! Cannot proceed.")
-            return "No bot strategies found! Cannot proceed."
+            return None, "No bot strategies found! Cannot proceed."
 
-        # Decide how to create players:
+        # Decide how to create players
         if custom_config:
             # Use custom_config dictionary
             for strat_name, count in custom_config.items():
                 if strat_name not in strategy_dict:
                     print(f"Warning: Strategy '{strat_name}' not found.")
-                    return f"Warning: Strategy '{strat_name}' not found."
+                    # Return two values to avoid unpack errors
+                    return None, f"Warning: Strategy '{strat_name}' not found."
                 chosen_cls = strategy_dict[strat_name]
                 for i in range(count):
                     player_name = f"{strat_name}{i+1}"
                     Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
-
         else:
             # Fall back to random if custom_config is None or empty
-            # If botnumber is None, default to 4
             if not botnumber:
                 botnumber = 4
             print(f"Creating {botnumber} random bots.")
@@ -908,7 +906,7 @@ def run_game(
         # Ensure at least 2 players
         if len(table.players) < 2:
             print("Need at least 2 players to run a game.")
-            return "Need at least 2 players to run a game."
+            return None, "Need at least 2 players to run a game."
 
         status = 'play'
         deck = Deck()
@@ -941,17 +939,18 @@ def run_game(
             if len(table.players) > 1:
                 for p in pots:
                     log = showdown(p, log)
+
             # Increment hand count and update blinds every 6 hands
             table.hands += 1
             table.blinds_timer = table.hands % 6
             if table.blinds_timer == 5:
                 table.blinds[:] = [x * 2 for x in table.blinds]
 
-            # Remove busted
+            # Remove busted players
             for player in table.players[:]:
-                # log += f"{player.name} {player.stack} {table.blinds[1]}"
                 if player.stack <= table.blinds[1]:
                     log = player.bust(table, log)
+
             # End game if only one player remains
             if len(table.players) == 1:
                 status = 'winner'
@@ -963,10 +962,12 @@ def run_game(
         if table.hands >= max_hands:
             log += "Maximum hand limit reached, ending simulation."
 
+        # If there's at least one player left, declare them winner
         for player in table.players:
             log += str(player.name) + ' wins the game!'
             table.winner = str(player.name)
 
+        # Summarize results
         summary += "Game Summary:\n\n" + table.winner + " wins after " + str(table.hands) + " hands\n\n"
         for (player, hands) in table.busted:
             summary += player + " busted on round " + str(hands) + '\n'
@@ -974,55 +975,102 @@ def run_game(
     finally:
         sys.stdout = old_stdout
 
-    #return buffer.getvalue()
+    # Combine summary and full log
     log = summary + '\n===========================================================================================================\n\nFull game log:\n\n' + log
     return table.winner, log
 
-def run_tournament(num_games: int, custom_config: dict, smallblind: int = 10, stack: int = 100):
+
+def run_tournament(
+    num_games: int,
+    custom_config: dict,
+    smallblind: int = 10,
+    stack: int = 100,
+    game_size: int = 8,     # How many players per game.
+    min_players: int = 2    # Minimum number of distinct bots required.
+):
+    """
+    Runs a tournament with a fixed number of games.
+    Each game has game_size seats.
+    
+    The tournament distributes the total seats (game_size * num_games)
+    as equally as possible among the selected bots from custom_config.
+    
+    custom_config is a dictionary like: {"StrategyName": count, ...}
+    
+    Returns:
+       (scores, logs) -> (dict, str)
+       - scores: a dict mapping winner's name to number of wins
+       - logs: a complete log string for all games
+    """
     import random
     from .poker import run_game
 
+    # Build a list of players from custom_config.
+    # Each entry is a tuple: (strategy name, unique bot id).
     player_list = []
     for strat_name, count in custom_config.items():
         for i in range(count):
             player_list.append((strat_name, f"{strat_name}{i+1}"))
-
+    
     total_players = len(player_list)
-    if total_players == 0:
-        return "No players in config."
+    if total_players < min_players:
+        # Return two values: empty scores + error message
+        return {}, "Not enough players in config."
 
-    total_seats = 8 * num_games
-    if total_seats % total_players != 0:
-        return "Players can't be evenly seated."
+    total_seats = game_size * num_games
 
-    seats_per_player = total_seats // total_players
+    # Determine how many times each bot should appear.
+    base_count = total_seats // total_players
+    remainder = total_seats % total_players
+
+    # Build a seat pool: for each bot, include it base_count times,
+    # plus one more if we still have 'remainder' seats left.
     seat_pool = []
-    for (sname, pid) in player_list:
-        for _ in range(seats_per_player):
-            seat_pool.append((sname, pid))
+    for bot in player_list:
+        count_for_bot = base_count + (1 if remainder > 0 else 0)
+        if remainder > 0:
+            remainder -= 1
+        for _ in range(count_for_bot):
+            seat_pool.append(bot)
 
+    # Shuffle the seat pool so that game groupings are random
     random.shuffle(seat_pool)
+    
     logs = []
     scores = dict()
 
+    # Divide the seat pool into num_games chunks of game_size players
     for g in range(num_games):
-        chunk = seat_pool[g*8 : (g+1)*8]
+        chunk = seat_pool[g * game_size: (g + 1) * game_size]
+        # Build a mini_config for this game based on the chunk
         mini_config = {}
         for (sname, _) in chunk:
             mini_config[sname] = mini_config.get(sname, 0) + 1
-        winner, game_log = run_game(custom_config=mini_config, smallblind=smallblind, stack=stack)
-        if winner in scores.keys():
-            scores[winner] += 1
-        else:
-            scores[winner] = 1
+
+        # run_game must return a two-element tuple
+        winner, game_log = run_game(
+            custom_config=mini_config,
+            smallblind=smallblind,
+            stack=stack
+        )
+
+        # If 'winner' is None, it means run_game returned an error
+        if not winner:
+            # Optionally, handle error if needed
+            logs.append(f"Game {g+1}: {game_log}\n\n")
+            continue
+
+        scores[winner] = scores.get(winner, 0) + 1
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
 
     return scores, "".join(logs)
+
+
 if __name__ == '__main__':
-    log, summary = run_game(4, 10, 1000)
-    print(summary)
-    print('========================================================================================================\n\n')
-    print(log)
+    # Example usage of run_game
+    winner, full_log = run_game(4, 10, 1000)
+    print(full_log)
+
 
 
 """
