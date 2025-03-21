@@ -24,15 +24,6 @@ class StudentBot(models.Model):
     class Meta:
         db_table = 'StudentPokerBots'
 
-class Tournament(models.Model):
-    StudentID = models.ForeignKey(User, on_delete=models.CASCADE)
-    BotID = models.ForeignKey(StudentBot, on_delete=models.CASCADE)
-    NumberOfRounds=models.IntegerField()
-    NumberOfWins=models.IntegerField()
-    
-    class Meta:
-        db_table = 'Tournament'
-
 class TournamentData(models.Model):
     DateRun= models.DateField(auto_now_add=True)
     Notes= models.CharField(max_length=140)
@@ -42,6 +33,16 @@ class TournamentData(models.Model):
     
     class Meta:
         db_table = 'TournamentData'
+
+class Tournament(models.Model):
+    TournamentID = models.ForeignKey(TournamentData, on_delete=models.CASCADE)
+    StudentID = models.ForeignKey(User, on_delete=models.CASCADE)
+    BotID = models.ForeignKey(StudentBot, on_delete=models.CASCADE)
+    NumberOfRounds=models.IntegerField()
+    NumberOfWins=models.IntegerField()
+    
+    class Meta:
+        db_table = 'Tournament'
 
 class Profile(models.Model):
     name = models.CharField(max_length=140)

@@ -873,6 +873,8 @@ def run_game(
         table.blinds[0] = int(smallblind)
         table.blinds[1] = int(smallblind) * 2
 
+        name_map = dict()
+
         # If no strategies are found, return error as a tuple
         if not bot_classes:
             print("No bot strategies found! Cannot proceed.")
@@ -890,6 +892,7 @@ def run_game(
                 for i in range(count):
                     player_name = f"{strat_name}{i+1}"
                     Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
+                    name_map[player_name] = strat_name
         else:
             # Fall back to random if custom_config is None or empty
             if not botnumber:
@@ -902,6 +905,7 @@ def run_game(
                 strategy_counts[cls_name] = strategy_counts.get(cls_name, 0) + 1
                 player_name = f"{cls_name}{strategy_counts[cls_name]}"
                 Hand(name=player_name, table=table, strategy_cls=chosen_cls, stack=int(stack))
+                name_map[player_name] = cls_name
 
         # Ensure at least 2 players
         if len(table.players) < 2:
@@ -977,7 +981,7 @@ def run_game(
 
     # Combine summary and full log
     log = summary + '\n===========================================================================================================\n\nFull game log:\n\n' + log
-    return table.winner, log
+    return (table.winner, name_map[table.winner]), log
 
 
 def run_tournament(
@@ -995,7 +999,7 @@ def run_tournament(
     The tournament distributes the total seats (game_size * num_games)
     as equally as possible among the selected bots from custom_config.
     
-    custom_config is a dictionary like: {"StrategyName": count, ...}
+    custom_config is a dictionary like: {"StrategyName": (count, bot_info), ...}
     
     Returns:
        (scores, logs) -> (dict, str)
@@ -1008,7 +1012,8 @@ def run_tournament(
     # Build a list of players from custom_config.
     # Each entry is a tuple: (strategy name, unique bot id).
     player_list = []
-    for strat_name, count in custom_config.items():
+    bot_info_map = {k: v[1] for k, v in custom_config.items()}
+    for strat_name, (count, bot_info) in custom_config.items():
         for i in range(count):
             player_list.append((strat_name, f"{strat_name}{i+1}"))
     
@@ -1049,7 +1054,7 @@ def run_tournament(
             mini_config[sname] = mini_config.get(sname, 0) + 1
 
         # run_game must return a two-element tuple
-        winner, game_log = run_game(
+        (winner, winner_bot), game_log = run_game(
             custom_config=mini_config,
             smallblind=smallblind,
             stack=stack
@@ -1061,7 +1066,7 @@ def run_tournament(
             logs.append(f"Game {g+1}: {game_log}\n\n")
             continue
 
-        scores[winner] = scores.get(winner, 0) + 1
+        scores[winner] = (scores.get(winner, (0, ()))[0] + 1, bot_info_map[winner_bot])
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
     # raise Exception(str(scores))
 

@@ -192,6 +192,7 @@ def runtourney(request):
         selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
         custom_config = {}
         for bot in selected_bots:
+            bot_info = (bot.user, bot) # student id and bot id, needed for tournament table
             bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
             if len(bot_path) > 3 and bot_path[-3:] == '.py':
                 bot_path = bot_path[:-3]
@@ -202,7 +203,7 @@ def runtourney(request):
                 if issubclass(obj, Strategy) and obj is not Strategy:
                     bot_class = obj.__name__
             # search by class name, not nickname
-            custom_config[bot_class] = custom_config.get(bot_class, 0) + 1
+            custom_config[bot_class] = (custom_config.get(bot_class, 0) + 1, bot_info)
         
         if not custom_config:
             context["error"] = "No bots selected. Please select at least one bot."
@@ -218,9 +219,14 @@ def runtourney(request):
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            tourney = TournamentData.objects.create(NumberofPlayers=num_players)
+            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games)
             tourney.save()
+            for winner, (num_wins, info) in scores.items():
+                sid, bid = info
+                row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=0, NumberOfWins=num_wins)
+                row.save()
             # Sort scores in descending order
+            scores = {k: v[0] for k, v in scores.items()}
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
             context["scores"] = scores
             context["num_games"] = num_games
