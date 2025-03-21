@@ -162,6 +162,7 @@ def adminprofile(request):
 @user_passes_test(admin_check)
 def runtourney(request):
     num_games = 50
+    num_players = 8
     seen = set()
     # Get the latest StudentBot for each user
     latest_bot_qs = StudentBot.objects.values('user_id')
@@ -212,11 +213,13 @@ def runtourney(request):
                 custom_config=custom_config,
                 smallblind=10,
                 stack=100,
-                game_size=8,      # you can adjust this if needed
+                game_size=num_players,      # you can adjust this if needed
                 min_players=2
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
+            tourney = TournamentData.objects.create(NumberofPlayers=num_players)
+            tourney.save()
             # Sort scores in descending order
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
             context["scores"] = scores

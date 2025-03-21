@@ -37,6 +37,7 @@ class TournamentData(models.Model):
     DateRun= models.DateField(auto_now_add=True)
     Notes= models.CharField(max_length=140)
     NumberofPlayers=models.IntegerField()
+    NumberofGames=models.IntegerField()
     Visible = models.BooleanField(default=True)
     
     class Meta:
