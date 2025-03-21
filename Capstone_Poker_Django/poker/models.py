@@ -5,6 +5,8 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import User
 from anchor.models.fields import SingleAttachmentField
+from PIL import Image
+from django.core.validators import MinValueValidator
 
 class BaseBot(models.Model):
     name = models.CharField(max_length=140)
@@ -22,10 +24,23 @@ class StudentBot(models.Model):
     class Meta:
         db_table = 'StudentPokerBots'
 
+class Tournament(models.Model):
+    StudentID = models.ForeignKey(User, on_delete=models.CASCADE)
+    BotID = models.ForeignKey(StudentBot, on_delete=models.CASCADE)
+    NumberOfRounds=models.IntegerField()
+    NumberOfWins=models.IntegerField()
+    
+    class Meta:
+        db_table = 'Tournament'
 
-from django.db import models
-from django.contrib.auth.models import User
-from PIL import Image
+class TournamentData(models.Model):
+    DateRun= models.DateField(auto_now_add=True)
+    Notes= models.CharField(max_length=140)
+    NumberofPlayers=models.IntegerField()
+    Visible = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'TournamentData'
 
 class Profile(models.Model):
     name = models.CharField(max_length=140)
