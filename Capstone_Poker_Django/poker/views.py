@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpRequest
 from . import poker
-from . import bots
+from . import bots as bots_dir
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
@@ -30,6 +30,9 @@ from .models import StudentBot
 from .models import BaseBot
 from django.db.models import Max
 from django.db.models import Min
+import importlib
+import inspect
+from .pokerstrat import Strategy
 
 def index(request):
                 
@@ -53,12 +56,12 @@ def game(request):
 
 
 def custom(request):
-    discovered = discoverStrats(bots)
+    discovered = discoverStrats(bots_dir)
     strategy_names = [cls.__name__ for cls in discovered]
     return render(request, 'custom.html', {'strategy_names': strategy_names})
 
 def customgame(request):
-    discovered = discoverStrats(bots)
+    discovered = discoverStrats(bots_dir)
     strategy_names = [cls.__name__ for cls in discovered]
     custom_config = {}
     for strat in strategy_names:
@@ -160,6 +163,7 @@ def runtourney(request):
     seen = set()
     # Get the latest StudentBot for each user
     latest_bot_qs = StudentBot.objects.values('user_id')
+    # raise Exception(str(latest_bot_qs))
     bots = []
     for bot in latest_bot_qs:
         recent_bot = StudentBot.objects.filter(user_id=bot['user_id']).latest('uploaded_at')
@@ -174,7 +178,7 @@ def runtourney(request):
         "buttonclicked": False,
     }
     
-    if True:#request.method == "POST":
+    if request.method == "POST":
         context["buttonclicked"] = True
         # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
         selected_bot_ids = request.POST.getlist('bot_ids')
@@ -185,8 +189,17 @@ def runtourney(request):
         selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
         custom_config = {}
         for bot in selected_bots:
-            # For example, if a bot's name corresponds to its strategy, then:
-            custom_config[bot.name] = custom_config.get(bot.name, 0) + 1
+            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
+            if len(bot_path) > 3 and bot_path[-3:] == '.py':
+                bot_path = bot_path[:-3]
+            module = importlib.import_module(bot_path)
+            # raise Exception(bot_path)
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                # Ensure the class is a subclass of Strategy and not Strategy itself.
+                if issubclass(obj, Strategy) and obj is not Strategy:
+                    bot_class = obj.__name__
+            # search by class name, not nickname
+            custom_config[bot_class] = custom_config.get(bot_class, 0) + 1
         
         if not custom_config:
             context["error"] = "No bots selected. Please select at least one bot."
