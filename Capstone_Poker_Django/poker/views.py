@@ -203,7 +203,7 @@ def runtourney(request):
                 if issubclass(obj, Strategy) and obj is not Strategy:
                     bot_class = obj.__name__
             # search by class name, not nickname
-            custom_config[bot_class] = (custom_config.get(bot_class, 0) + 1, bot_info)
+            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
         
         if not custom_config:
             context["error"] = "No bots selected. Please select at least one bot."
