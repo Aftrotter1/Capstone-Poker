@@ -233,7 +233,18 @@ def runtourney(request):
             context["tournament_log"] = tournament_log
     
     return render(request, 'admin.html', context)
+#INCOMPLETE TOURNEY HISTORY VIEW
+@login_required
+@user_passes_test(admin_check)
+def tournament_history(request):
 
+    data_list = (TournamentData.objects
+                 .filter(Visible=True)
+                 .order_by('-DateRun')          # show latest first
+                 .prefetch_related('tournament_set',
+                                   'tournament_set__StudentID',
+                                   'tournament_set__BotID'))
+    return render(request, 'tournament_history.html', {'data_list': data_list})
 
 def begin(request):
     return render(request, 'begin.html')

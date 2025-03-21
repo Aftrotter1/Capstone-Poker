@@ -1,0 +1,58 @@
+{% extends "start.html" %}
+{% block title %}Tournament History{% endblock title %}
+{% block content %}
+<div class="container mt-3">
+    <h1>Tournament History</h1>
+    
+    {% comment %}
+      data_list is a queryset of TournamentData objects.
+      Each has a reverse relation to the Tournament model via .tournament_set.
+    {% endcomment %}
+    
+    {% for tournamentData in data_list %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Tournament #{{ tournamentData.id }}</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Date Run:</strong> {{ tournamentData.DateRun }}</p>
+            <p><strong>Notes:</strong> {{ tournamentData.Notes }}</p>
+            <p><strong>Number of Players:</strong> {{ tournamentData.NumberofPlayers }}</p>
+            <p><strong>Number of Games:</strong> {{ tournamentData.NumberofGames }}</p>
+            <p><strong>Visible:</strong> {{ tournamentData.Visible }}</p>
+        </div>
+        <div class="card-footer">
+            <h5>Results</h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Bot</th>
+                        <th>Number of Rounds</th>
+                        <th>Number of Wins</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tournamentData.tournament_set.all %}
+                    <tr>
+                        <!-- StudentID is a ForeignKey to User-->
+                        <td>{{ t.StudentID.username }}</td>
+                        <!-- BotID is a ForeignKey to StudentBot -->
+                        <td>{{ t.BotID.name }}</td>
+                        <td>{{ t.NumberOfRounds }}</td>
+                        <td>{{ t.NumberOfWins }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No results found for this tournament.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+    <p>No tournaments found.</p>
+    {% endfor %}
+</div>
+{% endblock content %}
