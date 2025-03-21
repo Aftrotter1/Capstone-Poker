@@ -26,7 +26,7 @@ class StudentBot(models.Model):
 
 class TournamentData(models.Model):
     DateRun= models.DateField(auto_now_add=True)
-    Notes= models.CharField(max_length=140)
+    Notes= models.TextField()
     NumberofPlayers=models.IntegerField()
     NumberofGames=models.IntegerField()
     Visible = models.BooleanField(default=True)
