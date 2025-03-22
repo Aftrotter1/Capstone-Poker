@@ -70,7 +70,7 @@
     
 
     {% if buttonclicked %}
-    {% for key, val in scores.items %}
+    {% for key, val in studentseen.items %}
     <p>{{ key }}: {{ val }} ({{ val|mul:100.0|div:num_games }}%)</p>
     {% endfor %}
     {% endif %}

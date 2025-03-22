@@ -231,12 +231,26 @@ def runstudent(request):
                 game_size=num_players,      # you can adjust this if needed
                 min_players=2
             )
+            if not scores:
+                raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
             # Sort scores in descending order
+            studentseen={}
+            for winner, (num_wins, info) in scores.items():
+                if type(info) is not BaseBot:
+                     sid, bid = info
+                     studentseen[sid]=0
+            for winner, (num_wins, info) in scores.items():
+                if type(info) is not BaseBot:
+                    sid, bid = info
+                    studentseen[sid]+=num_wins
+            context["studentseen"]=studentseen
             scores = {k: v[0] for k, v in scores.items()}
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
             context["scores"] = scores
             context["num_games"] = num_games
             context["tournament_log"] = tournament_log
+    print(scores)
+    print(studentseen)
     
     return render(request, 'profile.html', context)
 

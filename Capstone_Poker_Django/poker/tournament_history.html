@@ -33,7 +33,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for t in tournamentData.tournament_set.all %}
+                    {% for t in tournamentData.tournament_set.all|dictsortreversed:"NumberOfWins" %}
                     <tr>
                         <!-- StudentID is a ForeignKey to User-->
                         <td>{{ t.StudentID.username }}</td>
