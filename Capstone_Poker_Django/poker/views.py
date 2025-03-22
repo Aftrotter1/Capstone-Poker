@@ -4,6 +4,7 @@ from . import poker
 from . import bots as bots_dir
 from django.shortcuts import redirect
 from django.shortcuts import render
+from collections import defaultdict
 from django.contrib.auth.decorators import user_passes_test
 from django.conf import settings
 from django.urls import reverse
@@ -286,7 +287,6 @@ def runtourney(request):
                     bot_class = obj.__name__
             # search by class name, not nickname
             custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
-        
         if not custom_config:
             context["error"] = "No bots selected. Please select at least one bot."
         else:
@@ -303,10 +303,22 @@ def runtourney(request):
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
             tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games)
             tourney.save()
+            studentseen=defaultdict(int)
+            unique=set()
+
             for winner, (num_wins, info) in scores.items():
                 sid, bid = info
-                row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=0, NumberOfWins=num_wins)
-                row.save()
+                studentseen[sid]+=num_wins
+            for winner, (num_wins, info) in scores.items():
+                sid, bid = info
+                if sid not in unique:
+                    row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=0, NumberOfWins=studentseen[sid])
+                    row.save()
+                unique.add(sid)
+                
+
+
+
             # Sort scores in descending order
             scores = {k: v[0] for k, v in scores.items()}
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
