@@ -82,12 +82,6 @@
             </div>
         </div>
     </form>
-
-    {% if buttonclicked %}
-    {% for key, val in scores.items %}
-    <p>{{ key }}: {{ val }} ({{ val|mul:100.0|div:num_games }}%)</p>
-    {% endfor %}
-    {% endif %}
 </div>
 </body>
 {% if leaderboard %}

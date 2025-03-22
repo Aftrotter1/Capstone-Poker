@@ -159,6 +159,88 @@ def adminprofile(request):
         return render(request, 'admin.html',context)
 
 @login_required
+def runstudent(request):
+    basebots = BaseBot.objects.all()
+    studentbots= StudentBot.objects.filter(user=request.user).order_by('uploaded_at')
+    studentBotsOrdered=studentbots.reverse()
+    num_games = 50
+    num_players = 8
+    latest_bot_qs = StudentBot.objects.filter(user=request.user)
+    # raise Exception(str(latest_bot_qs))
+    bots = []
+    for bot in latest_bot_qs:
+            bots.append(bot)
+    
+    # Prepare context with the form and  of bots.
+    context = {
+        "bots": BaseBotForm(),  # This form renders the bot selection checkboxes in your template.
+        "botlist": basebots,
+        "buttonclicked": False,
+        "studentbots":studentBotsOrdered
+    }
+    
+    if request.method == "POST":
+        context["buttonclicked"] = True
+        # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
+        selected_base_ids = request.POST.getlist('bot_ids')
+        selected_bot_ids= request.POST.getlist('studentbot_ids')
+        
+        # Build a custom configuration for the tournament.
+        # This dictionary maps each bot's strategy (here, we use bot.name as a placeholder)
+        # to the number of times it should appear.
+        selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
+        selected_base_bots=BaseBot.objects.filter(id__in=selected_base_ids)
+        custom_config = {}
+        for bot in selected_bots:
+            bot_info = (bot.user, bot) # student id and bot id, needed for tournament table
+            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
+            if len(bot_path) > 3 and bot_path[-3:] == '.py':
+                bot_path = bot_path[:-3]
+            module = importlib.import_module(bot_path)
+            # raise Exception(bot_path)
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                # Ensure the class is a subclass of Strategy and not Strategy itself.
+                if issubclass(obj, Strategy) and obj is not Strategy:
+                    bot_class = obj.__name__
+            # search by class name, not nickname
+            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
+        for bot in selected_base_bots:
+            bot_info = (bot) # student id and bot id, needed for tournament table
+            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
+            if len(bot_path) > 3 and bot_path[-3:] == '.py':
+                bot_path = bot_path[:-3]
+            module = importlib.import_module(bot_path)
+            # raise Exception(bot_path)
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                # Ensure the class is a subclass of Strategy and not Strategy itself.
+                if issubclass(obj, Strategy) and obj is not Strategy:
+                    bot_class = obj.__name__
+            # search by class name, not nickname
+            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
+        
+        if not custom_config:
+            context["error"] = "No bots selected. Please select at least one bot."
+        else:
+            # Run the tournament using the new function.
+            scores, tournament_log = poker.run_tournament(
+                num_games=num_games,
+                custom_config=custom_config,
+                smallblind=10,
+                stack=100,
+                game_size=num_players,      # you can adjust this if needed
+                min_players=2
+            )
+            # Sort scores in descending order
+            scores = {k: v[0] for k, v in scores.items()}
+            scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
+            context["scores"] = scores
+            context["num_games"] = num_games
+            context["tournament_log"] = tournament_log
+    
+    return render(request, 'profile.html', context)
+
+
+@login_required
 @user_passes_test(admin_check)
 def runtourney(request):
     num_games = 50
@@ -235,7 +317,6 @@ def runtourney(request):
     return render(request, 'admin.html', context)
 #INCOMPLETE TOURNEY HISTORY VIEW
 @login_required
-@user_passes_test(admin_check)
 def tournament_history(request):
 
     data_list = (TournamentData.objects

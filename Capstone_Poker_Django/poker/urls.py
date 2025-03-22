@@ -29,6 +29,7 @@ urlpatterns = [
                                            authentication_form=LoginForm), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='logout.html'), name='logout'),
     path('tournament-history/', views.tournament_history, name='tourney_history'),
+    path('run-student/', views.runstudent, name='run-student'),
 ]
 
 if settings.DEBUG:
