@@ -249,8 +249,7 @@ def runstudent(request):
             context["scores"] = scores
             context["num_games"] = num_games
             context["tournament_log"] = tournament_log
-    print(scores)
-    print(studentseen)
+   
     
     return render(request, 'profile.html', context)
 
