@@ -26,6 +26,7 @@ from django.contrib.auth.views import LoginView
 from .forms import RegisterForm, LoginForm
 from django.urls import reverse_lazy
 from poker.forms import StudentBotForm
+from poker.forms import TournamentDataForm
 from poker.forms import BaseBotForm
 from .models import StudentBot
 from .models import BaseBot
@@ -150,12 +151,11 @@ def adminprofile(request):
         if request.method == 'POST':
             if 1==1: #if tournament logic is valid
                 pass#add tournament logic
-              
             else:
                # context={"bots": bot} 
                 #return render(request, 'admin.html',context) send data 
                 pass
-        context={"bots": StudentBotForm(), "botlist": bots}
+        context={"bots": StudentBotForm(), "botlist": bots,"tournament":TournamentDataForm()}
         # request.session.aset('botlist', context['botlist'])
         return render(request, 'admin.html',context)
 
@@ -181,6 +181,13 @@ def runstudent(request):
     }
     
     if request.method == "POST":
+        bot= StudentBotForm(request.POST,request.FILES)
+        if bot.is_valid():
+                model_instance = bot.save(commit=False)
+                if model_instance.user_id is None:
+                     model_instance.user_id = "1"
+                model_instance.user=  request.user
+                model_instance.save()
         context["buttonclicked"] = True
         # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
         selected_base_ids = request.POST.getlist('bot_ids')
@@ -191,6 +198,7 @@ def runstudent(request):
         # to the number of times it should appear.
         selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
         selected_base_bots=BaseBot.objects.filter(id__in=selected_base_ids)
+        
         custom_config = {}
         for bot in selected_bots:
             bot_info = (bot.user, bot) # student id and bot id, needed for tournament table
@@ -229,7 +237,7 @@ def runstudent(request):
                 smallblind=10,
                 stack=100,
                 game_size=num_players,      # you can adjust this if needed
-                min_players=2
+                min_players=2   
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
@@ -243,12 +251,14 @@ def runstudent(request):
                 if type(info) is not BaseBot:
                     sid, bid = info
                     studentseen[bid.name]+=num_wins
+          
             context["studentseen"]=studentseen
             scores = {k: v[0] for k, v in scores.items()}
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
             context["scores"] = scores
             context["num_games"] = num_games
             context["tournament_log"] = tournament_log
+            context["bot"] = bot
    
     
     return render(request, 'profile.html', context)
@@ -275,9 +285,13 @@ def runtourney(request):
         "bots": StudentBotForm(),  # This form renders the bot selection checkboxes in your template.
         "botlist": bots,
         "buttonclicked": False,
+        "tournament":TournamentDataForm(),
     }
     
     if request.method == "POST":
+        tournament = TournamentDataForm(request.POST)
+        if tournament.is_valid():
+             tournament=tournament.cleaned_data
         context["buttonclicked"] = True
         # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
         selected_bot_ids = request.POST.getlist('bot_ids')
@@ -314,7 +328,7 @@ def runtourney(request):
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games)
+            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games,Notes=tournament['Notes'])
             tourney.save()
             studentseen=defaultdict(int)
             unique=set()

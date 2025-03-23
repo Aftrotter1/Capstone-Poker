@@ -5,6 +5,7 @@ from .models import Profile
 
 from poker.models import StudentBot  #models.py
 from poker.models import BaseBot  #models.py
+from poker.models import TournamentData  #models.py
      
 class StudentBotForm(forms.ModelForm):  
     class Meta:  
@@ -23,6 +24,16 @@ class BaseBotForm(forms.ModelForm):
             super().__init__(*args, **kwargs)
             for field_name, field in self.fields.items():
                 field.widget.attrs['class'] = 'form-control'  
+
+class TournamentDataForm(forms.ModelForm):  
+    class Meta:  
+        model = TournamentData  
+        fields = ('Notes',)
+    def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            for field_name, field in self.fields.items():
+                field.widget.attrs['class'] = 'form-control' 
+
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=100,
                                required=True,
