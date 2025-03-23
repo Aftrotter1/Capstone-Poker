@@ -238,11 +238,11 @@ def runstudent(request):
             for winner, (num_wins, info) in scores.items():
                 if type(info) is not BaseBot:
                      sid, bid = info
-                     studentseen[sid]=0
+                     studentseen[bid.name]=0
             for winner, (num_wins, info) in scores.items():
                 if type(info) is not BaseBot:
                     sid, bid = info
-                    studentseen[sid]+=num_wins
+                    studentseen[bid.name]+=num_wins
             context["studentseen"]=studentseen
             scores = {k: v[0] for k, v in scores.items()}
             scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
