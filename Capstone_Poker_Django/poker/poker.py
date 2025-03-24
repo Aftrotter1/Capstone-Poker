@@ -1042,7 +1042,17 @@ def run_tournament(
             seat_pool.append(bot)
 
     # Shuffle the seat pool so that game groupings are random
-    random.shuffle(seat_pool) # FIXME: need smarter logic to avoid bots playing against themselves if possible
+    # random.shuffle(seat_pool) 
+
+    new_seat_pool = [] # Smart shuffle
+    while seat_pool:
+        copies_in_game = {player[0]: 0 for player in player_list}
+        for j in range(game_size):
+            rand = random.choice(list(filter(lambda x: copies_in_game[x[0]] == min(copies_in_game.values()), seat_pool)))
+            new_seat_pool.append(rand)
+            seat_pool.remove(rand)
+            copies_in_game[rand[0]] += 1
+    seat_pool = new_seat_pool
     
     logs = []
     scores = dict()
