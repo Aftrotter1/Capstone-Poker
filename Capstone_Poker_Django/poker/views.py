@@ -243,11 +243,11 @@ def runstudent(request):
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
             # Sort scores in descending order
             studentseen={}
-            for winner, (num_wins, info) in scores.items():
+            for winner, (num_wins, info, rounds) in scores.items():
                 if type(info) is not BaseBot:
                      sid, bid = info
                      studentseen[bid.name]=0
-            for winner, (num_wins, info) in scores.items():
+            for winner, (num_wins, info, rounds) in scores.items():
                 if type(info) is not BaseBot:
                     sid, bid = info
                     studentseen[bid.name]+=num_wins
@@ -333,13 +333,13 @@ def runtourney(request):
             studentseen=defaultdict(int)
             unique=set()
 
-            for winner, (num_wins, info) in scores.items():
+            for winner, (num_wins, info, rounds) in scores.items():
                 sid, bid = info
                 studentseen[sid]+=num_wins
-            for winner, (num_wins, info) in scores.items():
+            for winner, (num_wins, info, rounds) in scores.items():
                 sid, bid = info
                 if sid not in unique:
-                    row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=0, NumberOfWins=studentseen[sid])
+                    row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=rounds, NumberOfWins=studentseen[sid])
                     row.save()
                 unique.add(sid)
                 

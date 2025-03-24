@@ -1032,8 +1032,10 @@ def run_tournament(
     # Build a seat pool: for each bot, include it base_count times,
     # plus one more if we still have 'remainder' seats left.
     seat_pool = []
+    num_rounds_dict = dict()
     for bot in player_list:
         count_for_bot = base_count + (1 if remainder > 0 else 0)
+        num_rounds_dict[bot[0]] = count_for_bot
         if remainder > 0:
             remainder -= 1
         for _ in range(count_for_bot):
@@ -1066,7 +1068,8 @@ def run_tournament(
             logs.append(f"Game {g+1}: {game_log}\n\n")
             continue
 
-        scores[winner] = (scores.get(winner, (0, ()))[0] + 1, bot_info_map[winner_bot])
+        scores[winner] = (scores.get(winner, (0, (), 0))[0] + 1, bot_info_map[winner_bot], num_rounds_dict[winner_bot])
+        # {bot: #wins, bot_info, #rounds}
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
     # raise Exception(str(scores))
 
