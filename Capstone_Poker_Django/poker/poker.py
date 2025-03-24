@@ -1042,7 +1042,7 @@ def run_tournament(
             seat_pool.append(bot)
 
     # Shuffle the seat pool so that game groupings are random
-    random.shuffle(seat_pool)
+    random.shuffle(seat_pool) # FIXME: need smarter logic to avoid bots playing against themselves if possible
     
     logs = []
     scores = dict()
