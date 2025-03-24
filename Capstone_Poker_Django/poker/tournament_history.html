@@ -1,6 +1,7 @@
 {% extends "start.html" %}
 {% block title %}Tournament History{% endblock title %}
 {% block content %}
+{% load mathfilters %}
 <div class="container mt-3">
     <h1>Tournament History</h1>
     
@@ -30,6 +31,7 @@
                         <th>Bot</th>
                         <th>Number of Rounds</th>
                         <th>Number of Wins</th>
+                        <th>Win Percentage</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,10 +43,15 @@
                         <td>{{ t.BotID.name }}</td>
                         <td>{{ t.NumberOfRounds }}</td>
                         <td>{{ t.NumberOfWins }}</td>
+                        {% if t.NumberOfRounds != 0 %}
+                        <td>{{ t.NumberOfWins|mul:100.0|div:t.NumberOfRounds }}%</td>
+                        {% else %}
+                        <td>NA</td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4">No results found for this tournament.</td>
+                        <td colspan="5">No results found for this tournament.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
