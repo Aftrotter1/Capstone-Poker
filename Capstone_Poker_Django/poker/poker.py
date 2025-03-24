@@ -1048,6 +1048,8 @@ def run_tournament(
     while seat_pool:
         copies_in_game = {player[0]: 0 for player in player_list}
         for j in range(game_size):
+            if not seat_pool:
+                break
             rand = random.choice(list(filter(lambda x: copies_in_game[x[0]] == min(copies_in_game.values()), seat_pool)))
             new_seat_pool.append(rand)
             seat_pool.remove(rand)
@@ -1055,7 +1057,7 @@ def run_tournament(
     seat_pool = new_seat_pool
     
     logs = []
-    scores = dict()
+    scores = {player[0]: (0, bot_info_map[player[0]], num_rounds_dict[player[0]]) for player in player_list}
 
     # Divide the seat pool into num_games chunks of game_size players
     for g in range(num_games):
