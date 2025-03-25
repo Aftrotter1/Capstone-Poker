@@ -328,8 +328,6 @@ def runtourney(request):
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            for bot in custom_config:
-                print(bot)
             tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games,Notes=tournament['Notes'])
             tourney.save() # FIXME: The whole runtourney() function should run without exceptions before the db is modified
             studentseen=defaultdict(int)
