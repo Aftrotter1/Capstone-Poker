@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = bool(int(os.getenv('DEBUG',0)))
  
 ALLOWED_HOSTS = ['capstone-poker.appspot.com', 'localhost', '127.0.0.1']
 
