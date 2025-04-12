@@ -4,7 +4,6 @@ from django.db import models
 
 from django.db import models
 from django.contrib.auth.models import User
-from anchor.models.fields import SingleAttachmentField
 from PIL import Image
 from django.core.validators import MinValueValidator
 

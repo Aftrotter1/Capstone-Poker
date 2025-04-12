@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
  poker:
    build: .
@@ -11,3 +9,5 @@ services:
    image: poker:Capstone_Poker_Django
    container_name: poker-capstone
    command: python manage.py runserver 0.0.0.0:8000
+   environment:
+   - DEBUG=1

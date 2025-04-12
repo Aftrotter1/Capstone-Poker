@@ -7,6 +7,8 @@ from .views import RegisterView
 from django.contrib.auth import views as auth_views
 from poker.views import CustomLoginView  
 from poker.forms import LoginForm
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.views.generic.base import RedirectView
 
 
 urlpatterns = [    
@@ -30,7 +32,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(template_name='logout.html'), name='logout'),
     path('tournament-history/', views.tournament_history, name='tourney_history'),
     path('run-student/', views.runstudent, name='run-student'),
+     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon/favicon.ico'))),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

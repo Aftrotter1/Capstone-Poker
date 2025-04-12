@@ -1,0 +1,23 @@
+runtime: python312
+entrypoint:  gunicorn -b :$PORT poker.wsgi
+
+handlers:
+- url: /static
+  static_dir: static/
+- url: /.*
+  script: auto
+env_variables:
+   APPENGINE_URL: capstone-poker.ue.r.appspot.com
+   DJANGO_SECRET_KEY: 'django-insecure-$rgg8x6g$^tr%b0@00o:6of)0ygh8!li_f1f&:ako3wtp2!ch+'
+   DEBUGV: True
+   DJANGO_LOGLEVEL: info
+   DATABASE_ENGINE: mysql
+   DATABASE_NAME: pokerdatabase
+   DATABASE_USERNAME: root
+   DATABASE_PASSWORD: 3(~9L3tzOA@;9f*6
+      # Cloud SQL instance connection name:
+   DATABASE_HOST: '34.174.50.236'
+   DATABASE_PORT: ''
+
+
+    

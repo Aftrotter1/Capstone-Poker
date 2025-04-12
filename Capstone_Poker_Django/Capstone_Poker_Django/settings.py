@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 
+import environ
+
 from dotenv import load_dotenv
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,14 +22,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
+
+env= environ.Env(DEBUG=(bool,False))
+env_file= os.path.join(BASE_DIR,'.env')
+env.read_env(env_file)
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.getenv('DEBUG',0)))
- 
-ALLOWED_HOSTS = ['capstone-poker.appspot.com', 'localhost', '127.0.0.1']
+DEBUG = env("DEBUGV")
 
+APPENGINE_URL = env('APPENGINE_URL')
+ 
+ALLOWED_HOSTS = ['capstone-poker.appspot.com', 'localhost', '127.0.0.1',APPENGINE_URL]
+CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}']
+
+CORS_REPLACE_HTTPS_REFERER      = False
+HOST_SCHEME                     = "http://"
+SECURE_PROXY_SSL_HEADER         = None
+SECURE_SSL_REDIRECT             = False
+SESSION_COOKIE_SECURE           = False
+CSRF_COOKIE_SECURE              = False
+SECURE_HSTS_SECONDS             = None
+SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
+SECURE_FRAME_DENY               = False
 
 
 # Application definition
@@ -40,7 +59,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'poker.apps.PokerConfig',
-    'anchor',
     'mathfilters'
 ]
 
@@ -87,15 +105,7 @@ WSGI_APPLICATION = 'Capstone_Poker_Django.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("DATABASE_NAME"),
-        'USER': os.getenv("DATABASE_USERNAME"),
-        'PASSWORD': os.getenv("DATABASE_PASSWORD"),
-        # For Cloud SQL via Unix socket:
-        'HOST': os.getenv("DATABASE_HOST"),
-        'PORT': os.getenv("DATABASE_PORT"),
-    }
+    'default': env.db()
 }
 
                                                                                                                                                                                               
