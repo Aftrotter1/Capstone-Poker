@@ -418,3 +418,6 @@ class CustomLoginView(LoginView):
 
         # else browser session will be as long as the session cookie time "SESSION_COOKIE_AGE" defined in settings.py
         return super(CustomLoginView, self).form_valid(form)
+
+def redirect_shortener(request):
+    return redirect('/microsoft/to-auth-redirect/')

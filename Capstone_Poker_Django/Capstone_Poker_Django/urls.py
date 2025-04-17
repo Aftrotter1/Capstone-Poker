@@ -20,4 +20,5 @@ from django.urls import include, path
 urlpatterns = [
      path('', include('poker.urls')),
     path("admin/", admin.site.urls),
+    path('microsoft/', include('microsoft_auth.urls', namespace='microsoft')),
 ]

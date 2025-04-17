@@ -34,19 +34,22 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DEBUGV")
 
 APPENGINE_URL = env('APPENGINE_URL')
- 
-ALLOWED_HOSTS = ['capstone-poker.appspot.com', 'localhost', '127.0.0.1',APPENGINE_URL]
+SITE_ID = 2
+ALLOWED_HOSTS = ['*']
 CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}']
+
 
 CORS_REPLACE_HTTPS_REFERER      = False
 HOST_SCHEME                     = "http://"
-SECURE_PROXY_SSL_HEADER         = None
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', '')
 SECURE_SSL_REDIRECT             = False
 SESSION_COOKIE_SECURE           = False
 CSRF_COOKIE_SECURE              = False
 SECURE_HSTS_SECONDS             = None
 SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
 SECURE_FRAME_DENY               = False
+USE_X_FORWARDED_HOST = True
+
 
 
 # Application definition
@@ -59,6 +62,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'poker.apps.PokerConfig',
+    'django.contrib.sites',
+    'microsoft_auth',
+    'social_django',
     'mathfilters'
 ]
 
@@ -87,6 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'microsoft_auth.context_processors.microsoft',
                 'django.template.context_processors.media',
             ],       
             # 'libraries':{
@@ -103,12 +110,22 @@ WSGI_APPLICATION = 'Capstone_Poker_Django.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+AUTHENTICATION_BACKENDS = [
+    'microsoft_auth.backends.MicrosoftAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend' # if you also want to use Django's authentication
+    # I recommend keeping this with at least one database superuser in case of unable to use others
+]
 
 DATABASES = {
     'default': env.db()
 }
 
-                                                                                                                                                                                              
+MICROSOFT_AUTH_CLIENT_ID = env("MICROSOFT_AUTH_CLIENT_ID")
+MICROSOFT_AUTH_CLIENT_SECRET = env("MICROSOFT_AUTH_CLIENT_SECRET")
+MICROSOFT_AUTH_TENANT_ID = env("MICROSOFT_AUTH_TENANT_ID")
+
+# include Microsoft Accounts, Office 365 Enterpirse and Azure AD accounts
+MICROSOFT_AUTH_LOGIN_TYPE = 'ma'                                                                                                                                                                      
 
 
 # Password validation

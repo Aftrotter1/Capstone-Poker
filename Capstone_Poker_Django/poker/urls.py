@@ -32,7 +32,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(template_name='logout.html'), name='logout'),
     path('tournament-history/', views.tournament_history, name='tourney_history'),
     path('run-student/', views.runstudent, name='run-student'),
-     path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon/favicon.ico'))),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon/favicon.ico'))),
+    path('redirect_shortener/', views.redirect_shortener, name='redirect_shortener'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
