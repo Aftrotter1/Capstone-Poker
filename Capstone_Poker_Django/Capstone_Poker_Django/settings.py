@@ -126,7 +126,7 @@ MICROSOFT_AUTH_TENANT_ID = env("MICROSOFT_AUTH_TENANT_ID")
 # include Microsoft Accounts, Office 365 Enterpirse and Azure AD accounts
 MICROSOFT_AUTH_LOGIN_TYPE = 'ma'                                                                                                                                                                      
 
-
+ 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

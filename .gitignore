@@ -11,6 +11,7 @@ venv/
 env/
 
 # Django stuff
+capstone-poker-85aba9930e86.json
 app.yaml
 *.log
 *.pot
