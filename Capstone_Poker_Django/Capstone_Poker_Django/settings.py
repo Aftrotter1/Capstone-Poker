@@ -12,9 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-
+from django.core.files.storage import default_storage
+from google.oauth2 import service_account
 import environ
-
+import google.auth
 from dotenv import load_dotenv
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,11 +37,12 @@ DEBUG = env("DEBUGV")
 APPENGINE_URL = env('APPENGINE_URL')
 SITE_ID = 2
 ALLOWED_HOSTS = ['*']
-CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}',f'https://{APPENGINE_URL}']
+CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}']
 
-HOST_SCHEME                     = "http://"
+
 CORS_REPLACE_HTTPS_REFERER      = False
-SECURE_PROXY_SSL_HEADER = None
+HOST_SCHEME                     = "http://"
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', '')
 SECURE_SSL_REDIRECT             = False
 SESSION_COOKIE_SECURE           = False
 CSRF_COOKIE_SECURE              = False
@@ -49,8 +51,10 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
 SECURE_FRAME_DENY               = False
 USE_X_FORWARDED_HOST = True
 
+GS_BUCKET_NAME= env('GS_BUCKET_NAME')
+GS_PROJECT_ID= 'capstone-poker'
 
-
+GOOGLE_APPLICATION_CREDENTIALS = env('GOOGLE_APPLICATION_CREDENTIALS')
 # Application definition
 
 INSTALLED_APPS = [
@@ -111,13 +115,24 @@ WSGI_APPLICATION = 'Capstone_Poker_Django.wsgi.application'
 
 AUTHENTICATION_BACKENDS = [
     'microsoft_auth.backends.MicrosoftAuthenticationBackend',
-    'django.contrib.auth.backends.ModelBackend' # if you also want to use Django's authentication
-    # I recommend keeping this with at least one database superuser in case of unable to use others
+    'django.contrib.auth.backends.ModelBackend' 
 ]
 
 DATABASES = {
     'default': env.db()
 }
+
+STORAGES = {
+        "default": {
+            "BACKEND": 'storages.backends.gcloud.GoogleCloudStorage',
+            "OPTIONS": {
+                "bucket_name":env('GS_BUCKET_NAME'),
+            }
+        },
+         "staticfiles": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+    },
+    }
 
 MICROSOFT_AUTH_CLIENT_ID = env("MICROSOFT_AUTH_CLIENT_ID")
 MICROSOFT_AUTH_CLIENT_SECRET = env("MICROSOFT_AUTH_CLIENT_SECRET")
@@ -126,7 +141,7 @@ MICROSOFT_AUTH_TENANT_ID = env("MICROSOFT_AUTH_TENANT_ID")
 # include Microsoft Accounts, Office 365 Enterpirse and Azure AD accounts
 MICROSOFT_AUTH_LOGIN_TYPE = 'ma'                                                                                                                                                                      
 
- 
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -161,7 +176,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATICFILES_DIRS= (os.path.join(BASE_DIR, 'static'),)
 
 # Default primary key field type
@@ -169,6 +184,6 @@ STATICFILES_DIRS= (os.path.join(BASE_DIR, 'static'),)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'poker/bots')
-MEDIA_URL = 'bots/'
+MEDIA_URL = '/bots/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
