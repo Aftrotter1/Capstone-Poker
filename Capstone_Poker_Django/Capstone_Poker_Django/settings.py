@@ -37,12 +37,11 @@ DEBUG = env("DEBUGV")
 APPENGINE_URL = env('APPENGINE_URL')
 SITE_ID = 2
 ALLOWED_HOSTS = ['*']
-CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}']
+CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}',f'https://{APPENGINE_URL}']
 
-
-CORS_REPLACE_HTTPS_REFERER      = False
 HOST_SCHEME                     = "http://"
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', '')
+CORS_REPLACE_HTTPS_REFERER      = False
+SECURE_PROXY_SSL_HEADER = None
 SECURE_SSL_REDIRECT             = False
 SESSION_COOKIE_SECURE           = False
 CSRF_COOKIE_SECURE              = False
@@ -184,6 +183,6 @@ STATICFILES_DIRS= (os.path.join(BASE_DIR, 'static'),)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'poker/bots')
-MEDIA_URL = '/bots/'
+MEDIA_URL = 'bots/'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
