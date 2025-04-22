@@ -29,7 +29,13 @@ class TournamentData(models.Model):
     NumberofPlayers=models.IntegerField()
     NumberofGames=models.IntegerField()
     Visible = models.BooleanField(default=True)
-    
+    #The bot that caused a game to close early
+    closing_bot = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Which bot caused this tournament to abort early, if any."
+    )
     class Meta:
         db_table = 'TournamentData'
 

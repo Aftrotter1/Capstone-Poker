@@ -318,7 +318,7 @@ def runtourney(request):
             context["error"] = "No bots selected. Please select at least one bot."
         else:
             # Run the tournament using the new function.
-            scores, tournament_log = poker.run_tournament(
+            scores, closures, tournament_log = poker.run_tournament(
                 num_games=num_games,
                 custom_config=custom_config,
                 smallblind=10,
@@ -328,7 +328,8 @@ def runtourney(request):
             )
             if not scores:
                 raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games,Notes=tournament['Notes'])
+            closing = closures[0]['closing_bot'] if closures else None
+            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games,Notes=tournament['Notes'],closing_bot=closing,Visible=True)
             tourney.save() # FIXME: The whole runtourney() function should run without exceptions before the db is modified
             studentseen=defaultdict(int)
             unique=set()

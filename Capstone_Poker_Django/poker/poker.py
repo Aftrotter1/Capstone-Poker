@@ -4,8 +4,9 @@ from .pokerhands import evaluate_hand
 from operator import attrgetter
 # import time
 # from . import pokerstrat
-
-
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+class BotTimeout(Exception): pass
+# a single‐thread executor for all bots
 class Card:             # Defines a card object
 
     RANKS=['2','3','4','5','6','7','8','9','10','J', 'Q', 'K', 'A']
@@ -604,28 +605,32 @@ def betting_round(pot, table, out_string):
     create_side_pot=False
     side_potters=[]
     
-    while pot.no_raise<(pot.table_size):
-        
-                
-        next_up=(int(pot.who_plays)+(pot.turn))%pot.table_size
-        player=pot.players[next_up]
-        player.to_play=(pot.to_play-player.in_pot)
-        if player.to_play<0:
-            player.to_play=0
-        
-        
+    while pot.no_raise < pot.table_size:
+        next_up = (pot.who_plays + pot.turn) % pot.table_size
+        player = pot.players[next_up]
+        player.to_play = max(0, pot.to_play - player.in_pot)
 
-        #is the player folded? decide action
+        if not pot.is_frozen and player in pot.active_players:
+            out_string += f"{player.name} to play {player.to_play}\n\n"
 
-        if pot.is_frozen==False:
+            for strategy in player.strategy:
+                # create a brand‑new executor for this one call
+                executor = ThreadPoolExecutor(max_workers=1)       # <<< new
+                future   = executor.submit(
+                              strategy.decide_play, 
+                              player, pot, out_string
+                          )
 
-            if player in pot.active_players:
-                  
-                out_string += str(player.name)+' to play'+ str(player.to_play)+'\n\n'
+                try:
+                    # wait up to 1 second
+                    out_string = future.result(timeout=1)          # <<< same
+                except TimeoutError:
+                    executor.shutdown(wait=False)                  # <<< clean up
+                    # abort the entire hand
+                    raise BotTimeout(player.name)                  # <<< same
+                finally:
+                    executor.shutdown(wait=False)                  # <<< clean up
 
-                for strategy in player.strategy:
-
-                      out_string = strategy.decide_play(player, pot, out_string)
 
             else:
                 
@@ -976,6 +981,14 @@ def run_game(
         for (player, hands) in table.busted:
             summary += player + " busted on round " + str(hands) + '\n'
 
+    except BotTimeout as e:
+        
+        # <<< one of the bots e.args[0] took too long
+        sys.stdout = old_stdout
+        bot_name = str(e)
+        return (None, bot_name), f"Timeout: {bot_name}"
+    
+    
     finally:
         sys.stdout = old_stdout
 
@@ -1008,7 +1021,7 @@ def run_tournament(
     """
     import random
     from .poker import run_game
-
+    closures = []
     # Build a list of players from custom_config.
     # Each entry is a tuple: (strategy name, unique bot id).
     player_list = []
@@ -1076,8 +1089,12 @@ def run_tournament(
 
         # If 'winner' is None, it means run_game returned an error
         if not winner:
-            # Optionally, handle error if needed
-            logs.append(f"Game {g+1}: {game_log}\n\n")
+            # record which bot caused the abort
+            closures.append({
+                'game': g+1,
+                'closing_bot': winner_bot
+            })
+            logs.append(f"Game {g+1} timed out by {winner_bot}\n\n")
             continue
 
         scores[winner] = (scores.get(winner, (0, (), 0))[0] + 1, bot_info_map[winner_bot], num_rounds_dict[winner_bot])
@@ -1085,7 +1102,7 @@ def run_tournament(
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
     # raise Exception(str(scores))
 
-    return scores, "".join(logs)
+    return scores, closures, "".join(logs)
 
 
 if __name__ == '__main__':

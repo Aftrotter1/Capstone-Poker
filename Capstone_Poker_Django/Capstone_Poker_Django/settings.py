@@ -32,19 +32,32 @@ env.read_env(env_file)
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUGV")
+DEBUG = env("DEBUG")
 
-APPENGINE_URL = env('APPENGINE_URL')
+# APPENGINE_URL = env('APPENGINE_URL')
+
+SITE_DOMAIN = env("SITE_DOMAIN")        # e.g. localhost:8000 or capstone-poker.ue.r.appspot.com
+HOST_SCHEME = env("HOST_SCHEME")        # 'http://' for dev or 'https://' for prod
 SITE_ID = 2
 ALLOWED_HOSTS = ['*']
-CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}',f'https://{APPENGINE_URL}']
+#CRSF_TRUSTED_ORIGINS = [f'http://{APPENGINE_URL}',f'https://{APPENGINE_URL}']
+CSRF_TRUSTED_ORIGINS = [
+    f"{HOST_SCHEME}{SITE_DOMAIN}"
+]
 
-HOST_SCHEME                     = "http://"
-CORS_REPLACE_HTTPS_REFERER      = False
-SECURE_PROXY_SSL_HEADER = None
-SECURE_SSL_REDIRECT             = False
-SESSION_COOKIE_SECURE           = False
-CSRF_COOKIE_SECURE              = False
+if DEBUG:
+    # local‑dev: plain HTTP
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_SSL_REDIRECT     = False
+    SESSION_COOKIE_SECURE   = False
+    CSRF_COOKIE_SECURE      = False
+else:
+    # production (behind HTTPS proxy)
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT     = True
+    SESSION_COOKIE_SECURE   = True
+    CSRF_COOKIE_SECURE      = True
+    SECURE_HSTS_SECONDS     = 3600  # or whatever you like
 SECURE_HSTS_SECONDS             = None
 SECURE_HSTS_INCLUDE_SUBDOMAINS  = False
 SECURE_FRAME_DENY               = False
@@ -137,6 +150,8 @@ MICROSOFT_AUTH_CLIENT_ID = env("MICROSOFT_AUTH_CLIENT_ID")
 MICROSOFT_AUTH_CLIENT_SECRET = env("MICROSOFT_AUTH_CLIENT_SECRET")
 MICROSOFT_AUTH_TENANT_ID = env("MICROSOFT_AUTH_TENANT_ID")
 
+MICROSOFT_AUTH_REDIRECT_PATH = "/microsoft/from-auth-redirect/"
+MICROSOFT_AUTH_REDIRECT_URI = f"{HOST_SCHEME}{SITE_DOMAIN}{MICROSOFT_AUTH_REDIRECT_PATH}"
 # include Microsoft Accounts, Office 365 Enterpirse and Azure AD accounts
 MICROSOFT_AUTH_LOGIN_TYPE = 'ma'                                                                                                                                                                      
 

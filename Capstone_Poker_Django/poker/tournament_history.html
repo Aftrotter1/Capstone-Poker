@@ -21,6 +21,9 @@
             <p><strong>Number of Players:</strong> {{ tournamentData.NumberofPlayers }}</p>
             <p><strong>Number of Games:</strong> {{ tournamentData.NumberofGames }}</p>
             <p><strong>Visible:</strong> {{ tournamentData.Visible }}</p>
+            {% if tournamentData.closing_bot %}
+            <p><strong>Closed By:</strong> {{ tournamentData.closing_bot }}</p>
+            {% endif %}
         </div>
         <div class="card-footer">
             <h5>Results</h5>
