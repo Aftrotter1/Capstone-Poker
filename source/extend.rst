@@ -3,8 +3,12 @@ Extending the Software
 
 Code structure
 --------------
-
-
+    - **Backend:** Built off a python/django framework.
+        - **Django:** A high-level Python web framework that encourages rapid development and clean, pragmatic design.
+    - **Frontend:** Front end is a series of HTML web pages linked to each other.
+        - **HTML:** The standard markup language for documents designed to be displayed in a web browser.
+    - **Database:** MySQL database hosted on Google Cloud.
+        - **MySQL:** An open-source relational database management system based on SQL (Structured Query Language).
 Build & dependencies
 --------------------
     - **Python version:** 3.12 (as specified in Dockerfile / CI pipeline)  
@@ -13,15 +17,13 @@ Build & dependencies
     - **Virtual env:** best practice is to create an isolated env via `python -m venv .venv` or `pipenv install`  
     - **Containerization:** Dockerfile + `docker-compose.yml` define the local‑dev and production images  
     - **Static assets:** Collected via `python manage.py collectstatic` and served either by WhiteNoise (dev) or GCS (prod)
-
-
 How to add a new feature
 ------------------------
-    - **Backend:** The python backend already provides tournament setup and bot assignment. If more features are desired with the code framework, they should be implemented here.
-    - **Frontend:** The frontend is an HTML app that can be extended with additional pages if needed.
-    - **Storage:** The database is a MySQL database hosted on the Google Cloud. If additional statistics want to be saved for bots, they should be implemented here.
+    - **Backend:** Add a new view in `views.py` and a new URL pattern in `urls.py`
+    - **Frontend:** Add a new HTML page in the `templates` directory and link it to the appropriate view in `urls.py`
+    - **Database:** Add a new model in `models.py` and run `python manage.py makemigrations` and `python manage.py migrate` to apply the changes to the database schema.
 Coding standards
     - **Code style:** Based on an edited version of https://github.com/philipok-1/Poker
-    - **Structure:** Built off a python/django framework. Communicates with a MySQL server to store bots and tournament data. Front end is HTML.
+    
 ----------------
 
