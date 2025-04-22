@@ -10,7 +10,7 @@ Code structure
     - **Database:** MySQL database hosted on Google Cloud.
         - **MySQL:** An open-source relational database management system based on SQL (Structured Query Language).
     - **Poker Simulation:** Python files with functions to create and run poker tournaments and collect results
-        - Source files found on GitHub were used as a starting point and modified for this project. More information is available in the `poker README<https://github.com/Aftrotter1/Capstone-Poker/blob/main/Capstone_Poker_Django/poker/README.md>`_`
+        - Source files found on GitHub were used as a starting point and modified for this project. More information is available in the `poker README <https://github.com/Aftrotter1/Capstone-Poker/blob/main/Capstone_Poker_Django/poker/README.md>`_
 Build & dependencies
 --------------------
     - **Python version:** 3.12 (as specified in Dockerfile / CI pipeline)  
