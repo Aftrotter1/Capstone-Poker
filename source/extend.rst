@@ -27,6 +27,8 @@ How to add a new feature
     - **Poker Simulation:** Modify the python gode in `poker.py` or `pokerhands.py`.
 Coding standards
     - **Code style:** Based on an edited version of https://github.com/philipok-1/Poker
+    - **Pep 8:** Follow PEP 8 style guide for Python code.
+    - **HTML:** Follow W3C standards for HTML code.
     
 ----------------
 
