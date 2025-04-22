@@ -33,7 +33,3 @@ Sprint 3: Authentication, Deployment & Documentation
 - Sphinx + ReadTheDocs: installation, usage, API reference
 - Dockerized local dev: Django + MySQL with docker‑compose, `.env` config
 
-Workflow
---------
-
-- Fixme
