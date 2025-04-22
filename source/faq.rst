@@ -2,7 +2,7 @@ Frequently Asked Questions
 ==========================
 
 1. **Q:** I get “port already in use” when running Docker…  
-   **A:** Stop any local containers on port 8000 (`docker ps`, then `docker stop <id>`).
+   **A:** Stop any local containers on port 8000 (`docker ps`, then `docker stop <id>`). |br|
    |br|
 2. **Q:** I can’t upload my bot…  
    **A:** The only requirements for bot uploads are that it's a python file and follows the bot Template. There are no upload limits currently.  |br|
@@ -23,7 +23,7 @@ Frequently Asked Questions
    **A:** Select one of your bots, one or more of the selectable test bots, and then hit Run Tournament with Selected Bots. |br|
    |br|
 8. **Q:** What format should I use for my bot? |br|
-    **A:** Click on the "Download Template" button in Bot Testing, which will give you a file template to use for your bot. |br|
+   **A:** Click on the "Download Template" button in Bot Testing, which will give you a file template to use for your bot. |br|
 
 .. |br| raw:: html
 
