@@ -231,7 +231,7 @@ def runstudent(request):
             context["error"] = "No bots selected. Please select at least one bot."
         else:
             # Run the tournament using the new function.
-            scores, tournament_log = poker.run_tournament(
+            scores, closures, tournament_log = poker.run_tournament(
                 num_games=num_games,
                 custom_config=custom_config,
                 smallblind=10,
