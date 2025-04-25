@@ -6,18 +6,41 @@ import importlib
 import inspect
 import os
 import pkgutil
+import importlib.util
+from django.core.files.storage import default_storage
 
 def discoverStrats(bot_package):
     foundStrats = []
+
+    # built-in bots package
     for _, module_name, is_pkg in pkgutil.iter_modules(bot_package.__path__):
         if is_pkg:
             continue
-        moduleName = f"{bot_package.__name__}.{module_name}"
-        module = importlib.import_module(moduleName)
-        for name, obj in inspect.getmembers(module, inspect.isclass):
-            # Ensure the class is a subclass of Strategy and not Strategy itself.
-            if issubclass(obj, Strategy) and obj is not Strategy:
-                foundStrats.append(obj)
+        module = importlib.import_module(f"{bot_package.__name__}.{module_name}")
+        for _, cls in inspect.getmembers(module, inspect.isclass):
+            if issubclass(cls, Strategy) and cls is not Strategy:
+                foundStrats.append(cls)
+
+    # user-uploaded .py files in GCS under 'bots/'
+    try:
+        _, files = default_storage.listdir("bots")
+    except (NotImplementedError, OSError):
+        files = []
+
+    for fname in files:
+        if not fname.endswith(".py") or fname.startswith("_"):
+            continue
+
+        raw = default_storage.open(f"bots/{fname}").read().decode("utf-8")
+        mod_name = fname[:-3]
+        spec = importlib.util.spec_from_loader(mod_name, loader=None)
+        mod  = importlib.util.module_from_spec(spec)
+        exec(raw, mod.__dict__)
+
+        for _, cls in inspect.getmembers(mod, inspect.isclass):
+            if issubclass(cls, Strategy) and cls is not Strategy:
+                foundStrats.append(cls)
+
     return foundStrats
 
 

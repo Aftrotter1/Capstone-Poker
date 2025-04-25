@@ -2,6 +2,8 @@
 import random
 from .pokerhands import evaluate_hand
 from operator import attrgetter
+import sys, inspect
+from .pokerstrat import Strategy
 # import time
 # from . import pokerstrat
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
@@ -623,7 +625,7 @@ def betting_round(pot, table, out_string):
 
                 try:
                     # wait up to 1 second
-                    out_string = future.result(timeout=1)          # <<< same
+                    out_string = future.result(timeout=5)          # <<< same
                 except TimeoutError:
                     executor.shutdown(wait=False)                  # <<< clean up
                     # abort the entire hand
@@ -855,13 +857,18 @@ def run_game(
     :return: A tuple of (winner, log). If an error occurs, returns (None, error_message).
     """
     import io
-    import sys
     import random
     from . import bots
     from .pokerstrat import discoverStrats
 
     # Discover all Strategy subclasses in the bots package.
     bot_classes = discoverStrats(bots)
+    for mod_name, mod in list(sys.modules.items()):
+        # only look at modules under poker.bots that we dynamically created
+        if mod_name.startswith(bots.__name__ + "."):
+            for cls_name, cls in inspect.getmembers(mod, inspect.isclass):
+                if issubclass(cls, Strategy) and cls is not Strategy and cls not in bot_classes:
+                    bot_classes.append(cls)
     # Build a quick lookup for strategies by name.
     strategy_dict = {cls.__name__: cls for cls in bot_classes}
 
@@ -1074,31 +1081,38 @@ def run_tournament(
 
     # Divide the seat pool into num_games chunks of game_size players
     for g in range(num_games):
-        chunk = seat_pool[g * game_size: (g + 1) * game_size]
-        # Build a mini_config for this game based on the chunk
+        # build this game’s seat list
+        chunk = seat_pool[g * game_size:(g + 1) * game_size]
         mini_config = {}
         for (sname, _) in chunk:
             mini_config[sname] = mini_config.get(sname, 0) + 1
 
-        # run_game must return a two-element tuple
-        (winner, winner_bot), game_log = run_game(
+        # run one game
+        outcome, game_log = run_game(
             custom_config=mini_config,
             smallblind=smallblind,
             stack=stack
         )
 
-        # If 'winner' is None, it means run_game returned an error
-        if not winner:
-            # record which bot caused the abort
+        # if outcome is None, it's a timeout or error
+        if outcome is None:
+            closing_bot = game_log
             closures.append({
-                'game': g+1,
-                'closing_bot': winner_bot
+                'game': g + 1,
+                'closing_bot': closing_bot
             })
-            logs.append(f"Game {g+1} timed out by {winner_bot}\n\n")
+            logs.append(f"Game {g+1} timed out by {closing_bot}\n\n")
             continue
 
-        scores[winner] = (scores.get(winner, (0, (), 0))[0] + 1, bot_info_map[winner_bot], num_rounds_dict[winner_bot])
-        # {bot: #wins, bot_info, #rounds}
+        # otherwise unpack the winner tuple
+        winner, winner_bot = outcome
+
+        # tally the win
+        scores[winner] = (
+            scores.get(winner, (0, (), 0))[0] + 1,
+            bot_info_map[winner_bot],
+            num_rounds_dict[winner_bot]
+        )
         logs.append(f"=== Game {g+1}/{num_games} ===\n{game_log}\n\n")
     # raise Exception(str(scores))
 

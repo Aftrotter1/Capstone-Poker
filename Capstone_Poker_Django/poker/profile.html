@@ -15,15 +15,11 @@
                 <button class = "button" type ="button">Download Template </button>
             </a>
             <p><h1>Bot Upload and Testing Page</h1></p>
-            <form method="POST" class="post-form" enctype="multipart/form-data">  
-                    {% csrf_token %}  
-                    {{bots.as_p}}
-                    <a href="{% url 'profile' %}">
-                    <label style = "margin: 25px;" class = "custom-file-upload" >
-                        <button style = "font-size: 20px;" type="submit">Upload</button>
-                    </a>
-        
-            </form>  
+            <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data">  
+                   {% csrf_token %}  
+                   {{ bots.as_p }}
+                   <button type="submit" class="btn btn-secondary">Upload Bot</button>
+                 </form>
         </div>
     </div>
     <h1>Selectable Test Bots:</h1>
