@@ -135,16 +135,24 @@ DATABASES = {
 }
 
 STORAGES = {
-        "default": {
-            "BACKEND": 'storages.backends.gcloud.GoogleCloudStorage',
-            "OPTIONS": {
-                "bucket_name":env('GS_BUCKET_NAME'),
-            }
-        },
-         "staticfiles": {
+    "default": {
         "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": {
+            "bucket_name": env("GS_BUCKET_NAME"),  # e.g. capstone-poker-bots
+            "location":    "bots",                 # <-- all uploads go under gs://…/bots/
+        },
     },
-    }
+    "staticfiles": {
+        "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+        "OPTIONS": {
+            "bucket_name": env("GS_BUCKET_NAME"),
+            "location":    "static",               # <-- your collectstatic target
+        },
+    },
+}
+
+DEFAULT_FILE_STORAGE  = "storages.backends.gcloud.GoogleCloudStorage"
+STATICFILES_STORAGE   = "storages.backends.gcloud.GoogleCloudStorage"
 
 MICROSOFT_AUTH_CLIENT_ID = env("MICROSOFT_AUTH_CLIENT_ID")
 MICROSOFT_AUTH_CLIENT_SECRET = env("MICROSOFT_AUTH_CLIENT_SECRET")

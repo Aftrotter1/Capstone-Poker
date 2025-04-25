@@ -4,12 +4,6 @@
 {% load mathfilters %}
 <div class="container mt-3">
     <h1>Tournament History</h1>
-    
-    {% comment %}
-      data_list is a queryset of TournamentData objects.
-      Each has a reverse relation to the Tournament model via .tournament_set.
-    {% endcomment %}
-    
     {% for tournamentData in data_list %}
     <div class="card mt-4">
         <div class="card-header">
@@ -19,7 +13,7 @@
             <p><strong>Date Run:</strong> {{ tournamentData.DateRun }}</p>
             <p><strong>Notes:</strong> {{ tournamentData.Notes }}</p>
             <p><strong>Number of Players:</strong> {{ tournamentData.NumberofPlayers }}</p>
-            <p><strong>Number of Games:</strong> {{ tournamentData.NumberofGames }}</p>
+            <p><strong>Number of Games:</strong> {{ tournamentData.NumberOfGames }}</p>
             <p><strong>Visible:</strong> {{ tournamentData.Visible }}</p>
             {% if tournamentData.closing_bot %}
             <p><strong>Closed By:</strong> {{ tournamentData.closing_bot }}</p>
@@ -32,7 +26,7 @@
                     <tr>
                         <th>Student</th>
                         <th>Bot</th>
-                        <th>Number of Rounds</th>
+                        <th>Number of Games</th>
                         <th>Number of Wins</th>
                         <th>Win Percentage</th>
                     </tr>
@@ -40,21 +34,21 @@
                 <tbody>
                     {% for t in tournamentData.tournament_set.all|dictsortreversed:"NumberOfWins" %}
                     <tr>
-                        <!-- StudentID is a ForeignKey to User-->
                         <td>{{ t.StudentID.username }}</td>
-                        <!-- BotID is a ForeignKey to StudentBot -->
                         <td>{{ t.BotID.name }}</td>
                         <td>{{ t.NumberOfRounds }}</td>
                         <td>{{ t.NumberOfWins }}</td>
-                        {% if t.NumberOfRounds != 0 %}
-                        <td>{{ t.NumberOfWins|mul:100.0|div:t.NumberOfRounds }}%</td>
-                        {% else %}
-                        <td>NA</td>
-                        {% endif %}
+                        <td>
+                          {% if t.NumberOfRounds %}
+                            {{ t.NumberOfWins|mul:100.0|div:t.NumberOfRounds }}%
+                          {% else %}
+                            NA
+                          {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5">No results found for this tournament.</td>
+                        <td colspan="5">No results for this tournament.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

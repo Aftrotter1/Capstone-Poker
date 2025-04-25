@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpRequest
 from . import poker
+import importlib, importlib.util, sys, io, inspect
 from . import bots as bots_dir
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -37,6 +38,7 @@ from django.db.models import Min
 import importlib
 import inspect
 from .pokerstrat import Strategy
+from django.core.files.storage import default_storage
 
 def index(request):
                 
@@ -161,201 +163,246 @@ def adminprofile(request):
 
 @login_required
 def runstudent(request):
-    basebots = BaseBot.objects.all()
-    studentbots= StudentBot.objects.filter(user=request.user).order_by('uploaded_at')
-    studentBotsOrdered=studentbots.reverse()
-    num_games = 50
+    import io
+
+    num_games   = 50
     num_players = 8
-    latest_bot_qs = StudentBot.objects.filter(user=request.user)
-    # raise Exception(str(latest_bot_qs))
-    bots = []
-    for bot in latest_bot_qs:
-            bots.append(bot)
-    
-    # Prepare context with the form and  of bots.
+
+    base_bots   = BaseBot.objects.all()
+    student_qs  = StudentBot.objects.filter(user=request.user).order_by('-uploaded_at')
+
     context = {
-        "bots": BaseBotForm(),  # This form renders the bot selection checkboxes in your template.
-        "botlist": basebots,
+        "bots":         BaseBotForm(),
+        "botlist":      base_bots,
+        "studentbots":  student_qs,
         "buttonclicked": False,
-        "studentbots":studentBotsOrdered
+        "scores":       None,
+        "studentseen":  None,
+        "tourney_log":  None,
+        "num_games":    None,
     }
-    
+
     if request.method == "POST":
-        bot= StudentBotForm(request.POST,request.FILES)
-        if bot.is_valid():
-                model_instance = bot.save(commit=False)
-                if model_instance.user_id is None:
-                     model_instance.user_id = "1"
-                model_instance.user=  request.user
-                model_instance.save()
+        # handle new upload
+        form = StudentBotForm(request.POST, request.FILES)
+        if form.is_valid():
+            inst = form.save(commit=False)
+            inst.user = request.user
+            inst.save()
+
         context["buttonclicked"] = True
-        # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
-        selected_base_ids = request.POST.getlist('bot_ids')
-        selected_bot_ids= request.POST.getlist('studentbot_ids')
-        
-        # Build a custom configuration for the tournament.
-        # This dictionary maps each bot's strategy (here, we use bot.name as a placeholder)
-        # to the number of times it should appear.
-        selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
-        selected_base_bots=BaseBot.objects.filter(id__in=selected_base_ids)
-        
+
+        selected_base_ids    = request.POST.getlist('bot_ids')
+        selected_student_ids = request.POST.getlist('studentbot_ids')
+
+        # build the config
         custom_config = {}
-        for bot in selected_bots:
-            bot_info = (bot.user, bot) # student id and bot id, needed for tournament table
-            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
-            if len(bot_path) > 3 and bot_path[-3:] == '.py':
-                bot_path = bot_path[:-3]
-            module = importlib.import_module(bot_path)
-            # raise Exception(bot_path)
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                # Ensure the class is a subclass of Strategy and not Strategy itself.
-                if issubclass(obj, Strategy) and obj is not Strategy:
-                    bot_class = obj.__name__
-            # search by class name, not nickname
-            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
-        for bot in selected_base_bots:
-            bot_info = (bot) # student id and bot id, needed for tournament table
-            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
-            if len(bot_path) > 3 and bot_path[-3:] == '.py':
-                bot_path = bot_path[:-3]
-            module = importlib.import_module(bot_path)
-            # raise Exception(bot_path)
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                # Ensure the class is a subclass of Strategy and not Strategy itself.
-                if issubclass(obj, Strategy) and obj is not Strategy:
-                    bot_class = obj.__name__
-            # search by class name, not nickname
-            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
-        
+
+        #  student bots: exec from storage 
+        for sb in StudentBot.objects.filter(id__in=selected_student_ids):
+            bot_info = (sb.user, sb)
+            raw      = default_storage.open(sb.Bot_File.name).read().decode("utf-8")
+
+            bot_pkg  = BaseBot.__module__.rsplit('.',1)[0] + ".bots"
+            mod_name = sb.Bot_File.name.rsplit(".",1)[0]
+            full_name= f"{bot_pkg}.{mod_name}"
+
+            spec = importlib.util.spec_from_loader(full_name, loader=None)
+            mod  = importlib.util.module_from_spec(spec)
+            mod.__package__ = bot_pkg
+            mod.__spec__    = spec
+            sys.modules[full_name] = mod
+            exec(raw, mod.__dict__)
+
+            from .pokerstrat import Strategy
+            for _, cls in inspect.getmembers(mod, inspect.isclass):
+                if issubclass(cls, Strategy) and cls is not Strategy:
+                    count, info = custom_config.get(cls.__name__, (0, bot_info))
+                    custom_config[cls.__name__] = (count+1, bot_info)
+                    break
+
+        #  base bots: import locally 
+        import poker.bots as bots_dir
+        from .pokerstrat import Strategy
+        for bb in BaseBot.objects.filter(id__in=selected_base_ids):
+            bot_info   = (None, bb)
+            module_ref = f"{bots_dir.__name__}.{bb.Bot_File.name[:-3]}"
+            module     = importlib.import_module(module_ref)
+            for _, cls in inspect.getmembers(module, inspect.isclass):
+                if issubclass(cls, Strategy) and cls is not Strategy:
+                    count, info = custom_config.get(cls.__name__, (0, bot_info))
+                    custom_config[cls.__name__] = (count+1, bot_info)
+                    break
+
         if not custom_config:
             context["error"] = "No bots selected. Please select at least one bot."
         else:
-            # Run the tournament using the new function.
-            scores, tournament_log = poker.run_tournament(
-                num_games=num_games,
-                custom_config=custom_config,
-                smallblind=10,
-                stack=100,
-                game_size=num_players,      # you can adjust this if needed
-                min_players=2   
+            # capture any prints from the poker engine
+            old_stdout = sys.stdout
+            sys.stdout  = io.StringIO()
+            try:
+                scores, closures, tourney_log = poker.run_tournament(
+                    num_games=num_games,
+                    custom_config=custom_config,
+                    smallblind=10,
+                    stack=100,
+                    game_size=num_players,
+                    min_players=2
+                )
+            finally:
+                sys.stdout = old_stdout
+
+            # tally only the student‐uploaded bots
+            studentseen = {}
+            for _, (wins, info, _) in scores.items():
+                _, bot_inst = info
+                if isinstance(bot_inst, StudentBot):
+                    studentseen[bot_inst.name] = studentseen.get(bot_inst.name, 0) + wins
+
+            # sort wins descending
+            sorted_scores = dict(
+                sorted(
+                    {k:v[0] for k,v in scores.items()}.items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )
             )
-            if not scores:
-                raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            # Sort scores in descending order
-            studentseen={}
-            for winner, (num_wins, info, rounds) in scores.items():
-                if type(info) is not BaseBot:
-                     sid, bid = info
-                     studentseen[bid.name]=0
-            for winner, (num_wins, info, rounds) in scores.items():
-                if type(info) is not BaseBot:
-                    sid, bid = info
-                    studentseen[bid.name]+=num_wins
-          
-            context["studentseen"]=studentseen
-            scores = {k: v[0] for k, v in scores.items()}
-            scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
-            context["scores"] = scores
-            context["num_games"] = num_games
-            context["tournament_log"] = tournament_log
-            context["bot"] = bot
-   
-    
+
+            context.update({
+                "scores":       sorted_scores,
+                "studentseen":  studentseen,
+                "tourney_log":  tourney_log,
+                "num_games":    num_games,
+            })
+
     return render(request, 'profile.html', context)
 
 
 @login_required
 @user_passes_test(admin_check)
 def runtourney(request):
-    num_games = 50
+    num_games   = 50
     num_players = 8
+
+    #  Grab each user’s latest StudentBot
     seen = set()
-    # Get the latest StudentBot for each user
-    latest_bot_qs = StudentBot.objects.values('user_id')
-    # raise Exception(str(latest_bot_qs))
-    bots = []
-    for bot in latest_bot_qs:
-        recent_bot = StudentBot.objects.filter(user_id=bot['user_id']).latest('uploaded_at')
-        if recent_bot and bot['user_id'] not in seen:
-            bots.append(recent_bot)
-            seen.add(bot['user_id'])
-    
-    # Prepare context with the form and  of bots.
+    latest_qs = StudentBot.objects.values('user_id')
+    latest_bots = []
+    for row in latest_qs:
+        sb = (StudentBot.objects
+              .filter(user_id=row['user_id'])
+              .latest('uploaded_at'))
+        if sb.user_id not in seen:
+            latest_bots.append(sb)
+            seen.add(sb.user_id)
+
     context = {
-        "bots": StudentBotForm(),  # This form renders the bot selection checkboxes in your template.
-        "botlist": bots,
+        "bots":          StudentBotForm(),
+        "botlist":       latest_bots,
         "buttonclicked": False,
-        "tournament":TournamentDataForm(),
+        "tournament":    TournamentDataForm(),
     }
-    
+
     if request.method == "POST":
-        tournament = TournamentDataForm(request.POST)
-        if tournament.is_valid():
-             tournament=tournament.cleaned_data
+        form = TournamentDataForm(request.POST)
+        if not form.is_valid():
+            context["buttonclicked"] = True
+            return render(request, 'admin.html', context)
+        tourney_data = form.cleaned_data
+
         context["buttonclicked"] = True
-        # Retrieve the selected bot IDs from the POST data (from checkboxes named "bot_ids")
-        selected_bot_ids = request.POST.getlist('bot_ids')
-        
-        # Build a custom configuration for the tournament.
-        # This dictionary maps each bot's strategy (here, we use bot.name as a placeholder)
-        # to the number of times it should appear.
-        selected_bots = StudentBot.objects.filter(id__in=selected_bot_ids)
+
+        #  Which StudentBots did the admin select?
+        selected_ids = request.POST.getlist('bot_ids')
         custom_config = {}
-        for bot in selected_bots:
-            bot_info = (bot.user, bot) # student id and bot id, needed for tournament table
-            bot_path = f"{bots_dir.__name__}.{bot.Bot_File}" 
-            if len(bot_path) > 3 and bot_path[-3:] == '.py':
-                bot_path = bot_path[:-3]
-            module = importlib.import_module(bot_path)
-            # raise Exception(bot_path)
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                # Ensure the class is a subclass of Strategy and not Strategy itself.
-                if issubclass(obj, Strategy) and obj is not Strategy:
-                    bot_class = obj.__name__
-            # search by class name, not nickname
-            custom_config[bot_class] = (custom_config.get(bot_class, (0, ()))[0] + 1, bot_info)
+
+        #  Dynamically load each selected bot and build custom_config
+        from .pokerstrat import Strategy
+        for sb in StudentBot.objects.filter(id__in=selected_ids):
+            bot_info = (sb.user, sb)
+            path     = sb.Bot_File.name
+            raw      = default_storage.open(path).read().decode("utf-8")
+
+            pkg       = 'poker.bots'
+            mod_name  = os.path.splitext(os.path.basename(path))[0]
+            full_name = f"{pkg}.{mod_name}"
+            spec      = importlib.util.spec_from_loader(full_name, loader=None)
+            mod       = importlib.util.module_from_spec(spec)
+            mod.__package__ = pkg
+            sys.modules[full_name] = mod
+            exec(raw, mod.__dict__)
+
+            for _, cls in inspect.getmembers(mod, inspect.isclass):
+                if issubclass(cls, Strategy) and cls is not Strategy:
+                    count, info = custom_config.get(cls.__name__, (0, bot_info))
+                    custom_config[cls.__name__] = (count + 1, bot_info)
+                    break
+
         if not custom_config:
-            context["error"] = "No bots selected. Please select at least one bot."
-        else:
-            # Run the tournament using the new function.
-            scores, closures, tournament_log = poker.run_tournament(
+            context["error"] = "No bots selected."
+            return render(request, 'admin.html', context)
+
+        #  Run the tournament, capturing any print()s
+        old_stdout = sys.stdout
+        sys.stdout  = io.StringIO()
+        try:
+            scores, closures, tourney_log = poker.run_tournament(
                 num_games=num_games,
                 custom_config=custom_config,
                 smallblind=10,
                 stack=100,
-                game_size=num_players,      # you can adjust this if needed
+                game_size=num_players,
                 min_players=2
             )
-            if not scores:
-                raise Exception("tournament returned empty scores dict\nlog:\n" + tournament_log)
-            closing = closures[0]['closing_bot'] if closures else None
-            tourney = TournamentData.objects.create(NumberofPlayers=num_players, NumberofGames=num_games,Notes=tournament['Notes'],closing_bot=closing,Visible=True)
-            tourney.save() # FIXME: The whole runtourney() function should run without exceptions before the db is modified
-            studentseen=defaultdict(int)
-            unique=set()
+        finally:
+            sys.stdout = old_stdout
 
-            for winner, (num_wins, info, rounds) in scores.items():
-                sid, bid = info
-                studentseen[sid]+=num_wins
-            for winner, (num_wins, info, rounds) in scores.items():
-                sid, bid = info
-                if sid not in unique:
-                    row = Tournament.objects.create(TournamentID=tourney, StudentID=sid, BotID=bid, NumberOfRounds=rounds, NumberOfWins=studentseen[sid])
-                    row.save()
-                unique.add(sid)
-                
+        #  Create the TournamentData header
+        closing = closures[0]['closing_bot'] if closures else None
+        td = TournamentData.objects.create(
+            NumberofPlayers=num_players,
+            NumberofGames=num_games,
+            Notes=tourney_data.get('Notes',''),
+            closing_bot=closing,
+            Visible=True
+        )
 
+        # Aggregate wins & rounds _by bot instance_
+        agg = {}
+        for _, (wins, info, rounds) in scores.items():
+            user, bot_inst = info
+            if bot_inst not in agg:
+                agg[bot_inst] = {"user": user, "wins": wins, "rounds": rounds}
+            else:
+                agg[bot_inst]["wins"]   += wins
+                # rounds is the same for each seat of that bot, so leave it
 
+        #  one Tournament row per bot
+        for bot_inst, data in agg.items():
+            Tournament.objects.create(
+                TournamentID   = td,
+                StudentID      = data["user"],
+                BotID          = bot_inst,
+                NumberOfRounds = num_games,         # 50 games
+                NumberOfWins   = data["wins"]
+            )
 
-            # Sort scores in descending order
-            scores = {k: v[0] for k, v in scores.items()}
-            scores = dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
-            context["scores"] = scores
-            context["num_games"] = num_games
-            context["tournament_log"] = tournament_log
-    
+        sorted_scores = {
+            bot.name: info["wins"]
+            for bot, info in sorted(agg.items(),
+                                    key=lambda x: x[1]["wins"],
+                                    reverse=True)
+        }
+
+        context.update({
+            "scores":        sorted_scores,
+            "tournament_log": tourney_log,
+            "num_games":      num_games,
+        })
+
     return render(request, 'admin.html', context)
-#INCOMPLETE TOURNEY HISTORY VIEW
+
+
 @login_required
 def tournament_history(request):
 

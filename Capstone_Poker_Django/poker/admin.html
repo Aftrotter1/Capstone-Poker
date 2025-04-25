@@ -1,10 +1,10 @@
 {% extends "start.html" %}
-{% block title %}Profile Page{% endblock title %}
+{% block title %}Admin Tournament Page{% endblock title %}
 {% block content %}
 {% load mathfilters %}
 <html>
 <head>
-    <title>Django File Upload - cairocoders</title>
+    <title>Admin Tournament Page</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
     <script>
     // Filter the displayed bots by matching the text content
@@ -14,28 +14,19 @@
         var cards = document.getElementsByClassName("bot-card");
         for (var i = 0; i < cards.length; i++) {
             var txtValue = cards[i].textContent || cards[i].innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                cards[i].style.display = "";
-            } else {
-                cards[i].style.display = "none";
-            }
+            cards[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
         }
     }
 
-    // Check all checkboxes (for latest bots, you might refine this if needed)
+    // Check all checkboxes (for latest bots)
     function selectAll() {
-        var checkboxes = document.getElementsByName("bot_ids");
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].checked = true;
-        }
+        var boxes = document.getElementsByName("bot_ids");
+        for (var i = 0; i < boxes.length; i++) boxes[i].checked = true;
     }
-
-    // Uncheck all checkboxes
+    // Uncheck all
     function clearBots() {
-        var checkboxes = document.getElementsByName("bot_ids");
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].checked = false;
-        }
+        var boxes = document.getElementsByName("bot_ids");
+        for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
     }
     </script>
 </head>
@@ -44,19 +35,22 @@
     <div class="row mb-3">
         <div class="col-12">
             <h1>Admin Tournament Page</h1>
-            <!-- You might remove the old Run Tournament link if using the form below -->
         </div>
     </div>
     <div class="row mb-3">
         <div class="col-md-6">
-            <input type="text" id="botSearch" class="form-control" onkeyup="filterBots()" placeholder="Search student bots...">
+            <input type="text" id="botSearch" class="form-control"
+                   onkeyup="filterBots()" placeholder="Search student bots...">
         </div>
         <div class="col-md-6 text-end">
-            <button type="button" class="btn btn-secondary" onclick="selectAll()">Select All Latest Student Bots</button>
-            <button type="button" class="btn btn-secondary" onclick="clearBots()">Clear Bots</button>
+            <button type="button" class="btn btn-secondary" onclick="selectAll()">
+                Select All Latest Student Bots
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="clearBots()">
+                Clear Bots
+            </button>
         </div>
     </div>
-    <!-- Form for running tournament with selected bots -->
     <form method="POST" action="{% url 'runtourney' %}">
         {% csrf_token %}
         <h1>Student Bots:</h1>
@@ -64,11 +58,12 @@
         <div class="card mt-2 bot-card">
             <div class="card-header">
                 <div class="form-check">
-                    <input type="checkbox" class="form-check-input" name="bot_ids" value="{{ bot.id }}">
+                    <input type="checkbox" class="form-check-input"
+                           name="bot_ids" value="{{ bot.id }}">
                     <label class="form-check-label">
-                        <strong>Bot Name: {{ bot.name }}</strong> <br>
-                        <strong>Bot User: {{ bot.user }}</strong><br>
-                        <strong>Uploaded At: {{ bot.uploaded_at }}</strong>
+                        <strong>Bot Name:</strong> {{ bot.name }}<br>
+                        <strong>Bot User:</strong> {{ bot.user }}<br>
+                        <strong>Uploaded At:</strong> {{ bot.uploaded_at }}
                     </label>
                 </div>
             </div>
@@ -78,36 +73,17 @@
         {% endfor %}
         <div class="row mt-3">
             <div class="col-12">
-                {{tournament.as_p}}
-                <button type="submit" name="tournament" class="btn btn-primary">Run Tournament with Selected Bots</button>
+                {{ tournament.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    Run Tournament with Selected Bots
+                </button>
             </div>
         </div>
+        {% if error %}
+        <div class="alert alert-danger mt-3">{{ error }}</div>
+        {% endif %}
     </form>
 </div>
 </body>
-{% if leaderboard %}
-<h2>Leaderboard</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>User ID</th>
-            <th>Bot Name</th>
-            <th>Wins</th>
-            <th>Win Rate (%)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for result in leaderboard %}
-        <tr>
-            <td>{{ result.user.id }}</td>
-            <td>{{ result.bot.name }}</td>
-            <td>{{ result.wins }}</td>
-            <td>{{ result.win_rate|floatformat:2 }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endif %}
-
 </html>
 {% endblock content %}
