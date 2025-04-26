@@ -26,9 +26,13 @@ How to add a new feature
     - **Database:** Add a new model in `models.py` and run `python manage.py makemigrations` and `python manage.py migrate` to apply the changes to the database schema.
     - **Poker Simulation:** Modify the python gode in `poker.py` or `pokerhands.py`.
 Coding standards
+------------------
     - **Code style:** Based on an edited version of https://github.com/philipok-1/Poker
     - **Pep 8:** Follow PEP 8 style guide for Python code.
     - **HTML:** Follow W3C standards for HTML code.
-    
-----------------
-
+Rundown Video
+-----------------
+<video width="320" height="240" controls>
+  <source src="rundown.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
