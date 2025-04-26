@@ -7,8 +7,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Poker_Capstone'
-copyright = '2025, Ethan Flores Andre Trotter Cole Petit Spencer Wessel'
-author = 'Ethan Flores Andre Trotter Cole Petit Spencer Wessel'
+copyright = '2025, Ethan Flores,  Andre Trotter, Cole Petit, and Spencer Wessel'
+author = 'Ethan Flores, Andre Trotter, Cole Petit, and Spencer Wessel'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
