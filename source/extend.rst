@@ -32,7 +32,7 @@ Coding standards
     - **HTML:** Follow W3C standards for HTML code.
 Rundown Video
 -----------------
-.. video:: source\rundown.mp4
+.. video:: source\_static\rundown.mp4
    :width: 500
    :height: 300
    :autoplay:
