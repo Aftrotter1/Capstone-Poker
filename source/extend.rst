@@ -32,8 +32,9 @@ Coding standards
     - **HTML:** Follow W3C standards for HTML code.
 Rundown Video
 -----------------
-.. video:: _static/rundown.mp4
-   :width: 500
-   :height: 300
-   :autoplay:
-   :nocontrols:
+.. raw:: html
+
+   <video width="500" height="300" autoplay controls>
+       <source src="_static/rundown.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+   </video>
